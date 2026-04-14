@@ -39,7 +39,7 @@ void app_main() {
     ESP_LOGI(TAG, "set cursor");
     lcd_set_cursor(0, 0);
     ESP_LOGI(TAG, "write hello");
-    lcd_print("Hello");
+    lcd_print("Helloooo");
 
     while (1) {
         esp_rom_delay_us(1000000);
@@ -51,7 +51,7 @@ void app_main() {
 esp_err_t lcd_write_byte(uint8_t b) {
     return i2c_master_write_to_device(
         I2C_NUM_0, 
-        0x3F, // default address from datasheet
+        0x27, // default address from datasheet is either 0x3F or 0x27
         &b,
         1,
         1000 / portTICK_PERIOD_MS
@@ -128,7 +128,11 @@ void lcd_init() {
 
     lcd_command(0x28);  // function set (binary 0010 1000) 2 lines, 5x8 font
     lcd_command(0x0C);  // 1100 -> set display command,turn display on, cursor off, blinking off
+    lcd_command(0x08); // display off
     lcd_command(0x01);  // clear
+    esp_rom_delay_us(2000);
+    lcd_command(0x06);  // set entry mode
+    lcd_command(0x0C); // display on
     vTaskDelay(5 / portTICK_PERIOD_MS);
     return;
 }
