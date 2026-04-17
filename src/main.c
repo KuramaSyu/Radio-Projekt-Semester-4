@@ -1,6 +1,8 @@
 #include "display.h"
+#include "radiotuner.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
+
 
 
 static const char *TAG = "example";
@@ -25,16 +27,20 @@ void app_main() {
     i2c_param_config(I2C_NUM_0, &i2c_config);
     i2c_driver_install(I2C_NUM_0, i2c_config.mode, 0, 0, 0);
 
-    ESP_LOGI(TAG, "init lcd");
-    lcd_init(); // weird sequence of commands
+    si4703_init();
+    si4703_set_freq(102.4);
 
-    ESP_LOGI(TAG, "set cursor");
-    lcd_set_cursor(0, 0);
-    ESP_LOGI(TAG, "write hello");
-    lcd_print("Helloooo");
+    // ESP_LOGI(TAG, "init lcd");
+    // lcd_init(); // weird sequence of commands
+
+    // ESP_LOGI(TAG, "set cursor");
+    // lcd_set_cursor(0, 0);
+    // ESP_LOGI(TAG, "write hello");
+    // lcd_print("Helloooo");
 
     while (1) {
         esp_rom_delay_us(1000000);
+        si4703_read_regs();
         ESP_LOGI(TAG, "In while loop");
     }
 };
