@@ -1,25 +1,36 @@
 #include "driver/i2c.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 #define RST_PIN 12
 #define I2C_ADDR 0x10
 #define I2C_MASTER_NUM I2C_NUM_0
+#define SDA_PIN 13
+#define SCL_PIN 14
 
 #define TAG "radio(si4703)"
 
 void si4703_reset();
 
 /**
- * starts the radio tuner si4073
+ * starts the radio tuner si4703
  */
 void si4703_reset() {
+    ESP_LOGI(TAG, "Resetting SI4703 on GPIO%d", RST_PIN);
+    gpio_set_level(SDA_PIN, 0);
+    ESP_LOGI(TAG, "Configuring reset pin GPIO%d", RST_PIN);
     gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
+    vTaskDelay(pdMS_TO_TICKS(10));
 
     // set resset pin for a short duration to low, to start the tuner
+    ESP_LOGI(TAG, "Pulling reset LOW");
     gpio_set_level(RST_PIN, 0);
     vTaskDelay(pdMS_TO_TICKS(10));
+    
+    ESP_LOGI(TAG, "Pulling reset HIGH");
     gpio_set_level(RST_PIN, 1);
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelay(pdMS_TO_TICKS(100));  // Give chip time to stabilize after reset
+    ESP_LOGI(TAG, "SI4703 reset complete");
 }
 
 // radio tuner has 16 16Bit Registers
@@ -42,7 +53,10 @@ esp_err_t si4703_read_regs() {
     );
 
     // device not accessible
-    if (ret != ESP_OK) return ret;
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read registers: %d", ret);
+        return ret;
+    }
 
     for (int i = 0; i < 16; i++ ) {
         // compose a 16Bit Register out of 2 8Bit Register
@@ -87,14 +101,40 @@ esp_err_t si4703_write_regs() {
     }
 
     // access device
-    esp_err_t ret = i2c_master_read_from_device(
+    esp_err_t ret = i2c_master_write_to_device(
         I2C_MASTER_NUM,
         I2C_ADDR,
         data,
         12,
         pdMS_TO_TICKS(100)
     );
-    return ESP_OK;
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to write registers: %d", ret);
+    }
+    return ret;
+}
+
+/**
+ * Scan I2C bus for responding devices (debug helper)
+ */
+static void i2c_scanner() {
+    ESP_LOGI(TAG, "Starting I2C bus scan on I2C_NUM_%d at 100kHz", I2C_MASTER_NUM);
+    uint8_t address;
+    esp_err_t ackerr;
+    int found_count = 0;
+    for (address = 1; address < 127; address++) {
+        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, true);
+        i2c_master_stop(cmd);
+        ackerr = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(50));
+        i2c_cmd_link_delete(cmd);
+        if (ackerr == ESP_OK) {
+            ESP_LOGI(TAG, "Found I2C device at address 0x%02X", address);
+            found_count++;
+        }
+    }
+    ESP_LOGI(TAG, "I2C scan complete, found %d device(s)", found_count);
 }
 
 /**
@@ -103,18 +143,27 @@ esp_err_t si4703_write_regs() {
  * sets volume (stage 2 of 7)
  */
 esp_err_t si4703_init() {
-    ESP_LOGD(TAG, "Resetting si4703");
+    ESP_LOGI(TAG, "Initializing SI4703 at I2C address 0x%02X", I2C_ADDR);
     si4703_reset();
+    
+    // Scan I2C bus to debug
+    //i2c_scanner();
+    
+    ESP_LOGI(TAG, "Reading SI4703 registers after reset");
     si4703_read_regs();
 
     // power up and update regs
     regs[0x02] = 0x4001; // from datasheet
+    ESP_LOGI(TAG, "Writing power config: 0x%04X", regs[0x02]);
     si4703_write_regs();
     vTaskDelay(pdMS_TO_TICKS(110));
+    ESP_LOGI(TAG, "Reading SI4703 registers after power-up");
     si4703_read_regs();
 
-    // volume (Bit 3 - 0) and unmute
-    regs[0x05] = 0x0010; // volume
+    // volume (Bit 3-0) + unmute bit (Bit 6)
+    // 0x0040 = unmute enable, 0x000F = max volume
+    regs[0x05] = 0x004F;  // unmuted, max volume
+    ESP_LOGI(TAG, "Writing volume/unmute: 0x%04X", regs[0x05]);
     si4703_write_regs();
 
     return ESP_OK;
@@ -131,6 +180,7 @@ esp_err_t si4703_init() {
  */
 esp_err_t si4703_set_freq(float freq_mhz) {
     ESP_LOGI(TAG, "Setting frequency to %.1f MHz", freq_mhz);
+    ESP_LOGD(TAG, "Reading registers before tuning");
     si4703_read_regs();
 
     // 87.5 is first channel, 108 the last
@@ -144,11 +194,13 @@ esp_err_t si4703_set_freq(float freq_mhz) {
     // when tune bit is enabled, the chip
     // initiates the tuning process, by applying the 
     // configured values from the registers
+    ESP_LOGI(TAG, "Starting tune request for channel %d", channel);
     si4703_write_regs();
     vTaskDelay(pdMS_TO_TICKS(60));
 
     // remove TUNE Bit, otherwise changing the freq again would fail
     regs[0x03] &= ~(0x8000); // set TUNE Bit to LOW
+    ESP_LOGD(TAG, "Clearing tune bit after tune request");
     si4703_write_regs();
 
     return ESP_OK;
