@@ -1,6 +1,6 @@
+#include "display.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
-#include "display.h"
 
 
 static const char *TAG = "example";
