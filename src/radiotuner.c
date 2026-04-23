@@ -170,6 +170,39 @@ esp_err_t si4703_init() {
 }
 
 /**
+ * starts up the chip,
+ * sets power up register bits,
+ * sets volume (stage 2 of 7)
+ */
+esp_err_t si4703_init2() {
+    // https://github.com/sparkfun/Si4703_FM_Tuner_Evaluation_Board/blob/master/Firmware/Si4703_Example/Si4703_Example.ino#L536-L573
+    gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SDA_PIN, GPIO_MODE_OUTPUT);
+
+    gpio_set_level(SDA_PIN, 0); // SDIO to LOW
+    gpio_set_level(RST_PIN, 0); // RST to LOW
+    vTaskDelay(pdMS_TO_TICKS(1));
+
+    gpio_set_level(RST_PIN, 1); // RST to HIGH
+    vTaskDelay(pdMS_TO_TICKS(1));
+
+    si4703_read_regs();
+    regs[0x07] = 0x8100; // enable oscillator
+    si4703_write_regs();
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    si4703_read_regs();
+    regs[0x02] = 0x4001;  // configure power
+    regs[0x04] |= (1<<12); // enable RDS
+    regs[0x04] |= (1<<11); // 50kHz Europe setup
+    regs[0x05] |= (1<<4);  // 100kHz channel spacing Europe
+    regs[0x05] &= 0xFFF0;  // clear volume
+    regs[0x05] |= 0x0001; // set volume
+    vTaskDelay(pdMS_TO_TICKS(110)); //  max powerup time, from datesheet page 13
+    return ESP_OK;
+}
+
+/**
  * sets the frequency of the radio tuner
  * @param freq_mhz frequency in MHz
  * 
