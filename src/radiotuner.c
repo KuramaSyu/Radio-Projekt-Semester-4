@@ -117,7 +117,7 @@ esp_err_t si4703_write_regs() {
 /**
  * Scan I2C bus for responding devices (debug helper)
  */
-static void i2c_scanner() {
+void i2c_scanner() {
     ESP_LOGI(TAG, "Starting I2C bus scan on I2C_NUM_%d at 100kHz", I2C_MASTER_NUM);
     uint8_t address;
     esp_err_t ackerr;

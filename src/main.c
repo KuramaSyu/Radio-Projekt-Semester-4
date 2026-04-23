@@ -42,9 +42,11 @@ void app_main() {
         esp_rom_delay_us(4000000);
         ESP_LOGI(TAG, "reinit radio");
         si4703_init();
+        ESP_LOGI(TAG, "Scanning for i2c");
+        i2c_scanner();
+
         // si4703_read_regs();
         // ESP_LOGI(TAG, "In while loop");
     }
 };
-
 
