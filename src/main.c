@@ -17,6 +17,9 @@ static const char *TIMER_TAG = "timer";
 static void pot_timer_task(void *arg);
 static void on_pot_change(int value);
 
+// both are used to check if 
+// values are changed compared to previous value
+float frequency = 0;
 int pot_raw_value = 0;
 
 // timer function which is set up to be
@@ -26,7 +29,7 @@ int pot_raw_value = 0;
 // is better user experience then buttons
 static void pot_timer_task(void *arg) {
     int now = read_pot_raw();
-    if (abs(pot_raw_value - now) > 100) {
+    if (abs(pot_raw_value - now) > 80) {
         // pot change is not just noice/jitter -> call event
         ESP_LOGI(TAG, "Dispatch potentiometer change (v=%d)", now);
         on_pot_change(now);
@@ -44,8 +47,41 @@ static void pot_timer_task(void *arg) {
  * * value: int from 0..4095
  */
 static void on_pot_change(int value) {
+    // get channel
     float channel = get_channel(value);
+
+    // check if channel is the same as before, if not change it
+    if (channel == frequency) {
+        return;
+    }
+    frequency = channel;
     tea5767_set_freq(channel);
+    const char *radio_station_name = get_channel_name(channel);
+    lcd_set_cursor(0, 0);
+    lcd_print(radio_station_name);
+    // read signal strength from tea5767
+    uint8_t status[5];
+    if (i2c_master_read_from_device(
+        I2C_NUM_0,
+        0x60, // tea5767 address
+        status,
+        5,
+        pdMS_TO_TICKS(100)
+    ) == ESP_OK) {
+        int signal = status[3] >> 4;
+        lcd_set_cursor(0, 1);
+        // wait 4s
+        lcd_print(get_formatted_signal_strength(signal));
+        esp_rom_delay_us(4000000);
+    } else {
+        lcd_set_cursor(0, 1);
+        lcd_print("Signal: n/a");
+        esp_rom_delay_us(4000000);
+    }
+    lcd_set_cursor(0, 1);
+    lcd_print(get_formatted_frequency(channel));
+
+
 }
 
 void app_main() {
@@ -54,38 +90,31 @@ void app_main() {
     ESP_LOGI(TAG, "Program start");
 
     // i2c is currently connected with PIN 13 = SDA and PIN 14 SCL
-    // i2c_config_t i2c_config = {
-    //     .mode = I2C_MODE_MASTER,
-    //     .sda_io_num = 13,
-    //     .scl_io_num = 14,
-    //     .sda_pullup_en = GPIO_PULLUP_ENABLE,
-    //     .scl_pullup_en = GPIO_PULLUP_ENABLE,
-    //     .master.clk_speed = 1000,
-    // };
+    i2c_config_t i2c_config = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = 13,
+        .scl_io_num = 14,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = 1000,
+    };
 
-    // // configure I2C
-    // ESP_LOGI(TAG, "configure i2c");
-    // i2c_param_config(I2C_NUM_0, &i2c_config);
-    // i2c_driver_install(I2C_NUM_0, i2c_config.mode, 0, 0, 0);
-
-    // // configure radio reset pin
-    // gpio_config_t io_conf = {
-    //     .pin_bit_mask = (1ULL << 12),
-    //     .mode = GPIO_MODE_INPUT,
-    //     .pull_up_en = GPIO_PULLUP_ENABLE,
-    //     .pull_down_en = GPIO_PULLDOWN_DISABLE,
-    //     .intr_type = GPIO_INTR_DISABLE
-    // };
-    // gpio_config(&io_conf);
+    // configure I2C
+    ESP_LOGI(TAG, "configure i2c");
+    i2c_param_config(I2C_NUM_1, &i2c_config);
+    i2c_driver_install(I2C_NUM_1, i2c_config.mode, 0, 0, 0);
 
     // setup fm radio unit (tea5767)
     i2c_init();
-    tea5767_set_freq(102.4);
-   
-
-
+    
     // init potentiometer
     adc_init();
+
+    // init LCD Display 
+    // (needs to be initialized after pot timer start
+    // since the pot timer updates the display on freq changes)
+    ESP_LOGI(TAG, "init lcd");
+    lcd_init(); // weird sequence of commands
 
     // setup timer to periodically check it's analog value (100ms)
     const esp_timer_create_args_t args = {
@@ -123,22 +152,14 @@ void app_main() {
     // esp_rom_delay_us(100000);
     // si4703_set_freq(102.4);
 
-    // ESP_LOGI(TAG, "init lcd");
-    // lcd_init(); // weird sequence of commands
 
-    // ESP_LOGI(TAG, "set cursor");
-    // lcd_set_cursor(0, 0);
-    // ESP_LOGI(TAG, "write hello");
-    // lcd_print("Helloooo");
 
     // while (1) {
-    //     // esp_rom_delay_us(1000000);
-    //     // ESP_LOGI(TAG, "reinit radio");
-    //     // si4703_init2();
-    //     // ESP_LOGI(TAG, "Scanning for i2c");
-    //     // i2c_scanner();
+    //     esp_rom_delay_us(1000000);
+    //     ESP_LOGI(TAG, "Scanning for i2c");
+    //     i2c_scanner();
         
-    //     // uint8_t status[5];
+    //     //uint8_t status[5];
 
     //     // if (i2c_master_read_from_device(
     //     //     I2C_NUM_0,
