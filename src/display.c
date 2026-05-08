@@ -3,7 +3,7 @@
 
 esp_err_t lcd_write_byte(uint8_t b) {
     return i2c_master_write_to_device(
-        I2C_NUM_0, 
+        I2C_NUM_1, 
         0x27, // default address from datasheet is either 0x3F or 0x27
         &b,
         1,
