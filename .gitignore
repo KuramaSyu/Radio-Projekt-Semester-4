@@ -1,0 +1,84 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+.pio/
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.env
+
+# Arduino / PlatformIO
+build/
+.pio/
+.pioenvs/
+.platformio/
+platformio.ini
+*.hex
+*.elf
+*.bin
+*.eep
+*.map
+*.lst
+*.d
+*.o
+*.a
+*.zip
+*.tar.gz
+*.tar
+*.gz
+*.tmp
+*.bak
+*.ino.bak
+*~
+*.core
+*.cache
+*.log
+
+# Arduino IDE temporary/preferences
+*.prefs
+
+# Compiled libraries and object files
+*.so
+
+# Temporary and swap files
+*.swp
+._*
+
+# Ignore local OS and tooling files
+.DS_Store
+Thumbs.db
+Icon
+
+# IDE/project files
+.classpath
+.project
+.settings/
+
+# Logs
+logs/
+*.log
+
+# Build output
+bin/
+obj/
+
+# Coverage
+.coverage
+coverage/
+
