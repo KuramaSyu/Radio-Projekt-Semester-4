@@ -2,14 +2,51 @@
 #include "radiotuner.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
-#include "joystick.h"
-#include "tea5767.c"
+#include "tea5767.h"
+#include "potentiometer.h"
+#include "esp_timer.h"
 
 
 
-static const char *TAG = "example";
+
+static const char *TAG = "main";
+static const char *TIMER_TAG = "timer";
 #define JOYSTICK_READ_X 11
 #define JOYSTICK_READ_Y 10
+
+static void pot_timer_task(void *arg);
+static void on_pot_change(int value);
+
+int pot_raw_value = 0;
+
+// timer function which is set up to be
+// periodically called
+// since internupt is not possible with 
+// analog device. But potentiometer
+// is better user experience then buttons
+static void pot_timer_task(void *arg) {
+    int now = read_pot_raw();
+    if (abs(pot_raw_value - now) > 100) {
+        // pot change is not just noice/jitter -> call event
+        ESP_LOGI(TAG, "Dispatch potentiometer change (v=%d)", now);
+        on_pot_change(now);
+        pot_raw_value = now;
+    };
+}
+
+
+/**
+ * check channel. If channel is not the same,
+ * then chagne it
+ * 
+ * Args:
+ * -----
+ * * value: int from 0..4095
+ */
+static void on_pot_change(int value) {
+    float channel = get_channel(value);
+    tea5767_set_freq(channel);
+}
 
 void app_main() {
 
@@ -40,9 +77,25 @@ void app_main() {
     //     .intr_type = GPIO_INTR_DISABLE
     // };
     // gpio_config(&io_conf);
+
+    // setup fm radio unit (tea5767)
     i2c_init();
     tea5767_set_freq(102.4);
-    ESP_LOGI(TAG, "Freq set to 102.4\n");
+   
+
+
+    // init potentiometer
+    adc_init();
+
+    // setup timer to periodically check it's analog value (100ms)
+    const esp_timer_create_args_t args = {
+        .callback = &pot_timer_task,
+        .name = "pot_timer",
+    };
+    esp_timer_handle_t pot_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&args, &pot_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(pot_timer, 100000));
+
 
     // configure controller pins as input
     // gpio_config_t joystick_x_conf = {
@@ -78,35 +131,28 @@ void app_main() {
     // ESP_LOGI(TAG, "write hello");
     // lcd_print("Helloooo");
 
-    while (1) {
-        // esp_rom_delay_us(1000000);
-        // ESP_LOGI(TAG, "reinit radio");
-        // si4703_init2();
-        ESP_LOGI(TAG, "Scanning for i2c");
-        i2c_scanner();
-        uint8_t status[5];
+    // while (1) {
+    //     // esp_rom_delay_us(1000000);
+    //     // ESP_LOGI(TAG, "reinit radio");
+    //     // si4703_init2();
+    //     // ESP_LOGI(TAG, "Scanning for i2c");
+    //     // i2c_scanner();
+        
+    //     // uint8_t status[5];
 
-        if (i2c_master_read_from_device(
-            I2C_NUM_0,
-            TEA5767_ADDR,
-            status,
-            5,
-            pdMS_TO_TICKS(100)
-        ) == ESP_OK) {
-            int stereo = (status[2] & 0x80) ? 1 : 0;
-            int signal = status[3] >> 4;
+    //     // if (i2c_master_read_from_device(
+    //     //     I2C_NUM_0,
+    //     //     TEA5767_ADDR,
+    //     //     status,
+    //     //     5,
+    //     //     pdMS_TO_TICKS(100)
+    //     // ) == ESP_OK) {
+    //     //     int stereo = (status[2] & 0x80) ? 1 : 0;
+    //     //     int signal = status[3] >> 4;
 
-            ESP_LOGI(TAG, "Stereo=%s, Signal%d\n", stereo, signal);
+    //     //     ESP_LOGI(TAG, "Stereo=%d, Signal=%d/15", stereo, signal);
 
-            // delay without vTAskDelay
-            for (volatile int i = 0; i < 10000000; i++) {}
-        }
-        // int joystick_x = gpio_get_level(JOYSTICK_READ_X);
-        // joystick_get_states_calibrated(&state_x, &state_y);
-        // ESP_LOGI(TAG, "X: %d; Y: %d", state_x, state_y);
-
-        // si4703_read_regs();
-        ESP_LOGI(TAG, "In while loop");
-    }
+    //     // }
+    // }
 };
 
