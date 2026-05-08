@@ -3,6 +3,7 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 #include "joystick.h"
+#include "tea5767.c"
 
 
 
@@ -16,29 +17,32 @@ void app_main() {
     ESP_LOGI(TAG, "Program start");
 
     // i2c is currently connected with PIN 13 = SDA and PIN 14 SCL
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = 13,
-        .scl_io_num = 14,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = 1000,
-    };
+    // i2c_config_t i2c_config = {
+    //     .mode = I2C_MODE_MASTER,
+    //     .sda_io_num = 13,
+    //     .scl_io_num = 14,
+    //     .sda_pullup_en = GPIO_PULLUP_ENABLE,
+    //     .scl_pullup_en = GPIO_PULLUP_ENABLE,
+    //     .master.clk_speed = 1000,
+    // };
 
-    // configure I2C
-    ESP_LOGI(TAG, "configure i2c");
-    i2c_param_config(I2C_NUM_0, &i2c_config);
-    i2c_driver_install(I2C_NUM_0, i2c_config.mode, 0, 0, 0);
+    // // configure I2C
+    // ESP_LOGI(TAG, "configure i2c");
+    // i2c_param_config(I2C_NUM_0, &i2c_config);
+    // i2c_driver_install(I2C_NUM_0, i2c_config.mode, 0, 0, 0);
 
-    // configure radio reset pin
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << 12),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&io_conf);
+    // // configure radio reset pin
+    // gpio_config_t io_conf = {
+    //     .pin_bit_mask = (1ULL << 12),
+    //     .mode = GPIO_MODE_INPUT,
+    //     .pull_up_en = GPIO_PULLUP_ENABLE,
+    //     .pull_down_en = GPIO_PULLDOWN_DISABLE,
+    //     .intr_type = GPIO_INTR_DISABLE
+    // };
+    // gpio_config(&io_conf);
+    i2c_init();
+    tea5767_set_freq(102.4);
+    ESP_LOGI(TAG, "Freq set to 102.4\n");
 
     // configure controller pins as input
     // gpio_config_t joystick_x_conf = {
@@ -62,9 +66,9 @@ void app_main() {
     // int state_x = 0;
     // int state_y = 0;
 
-    si4703_init2();
-    esp_rom_delay_us(100000);
-    si4703_set_freq(102.4);
+    // si4703_init2();
+    // esp_rom_delay_us(100000);
+    // si4703_set_freq(102.4);
 
     // ESP_LOGI(TAG, "init lcd");
     // lcd_init(); // weird sequence of commands
@@ -80,11 +84,28 @@ void app_main() {
         // si4703_init2();
         ESP_LOGI(TAG, "Scanning for i2c");
         i2c_scanner();
+        uint8_t status[5];
+
+        if (i2c_master_read_from_device(
+            I2C_NUM_0,
+            TEA5767_ADDR,
+            status,
+            5,
+            pdMS_TO_TICKS(100)
+        ) == ESP_OK) {
+            int stereo = (status[2] & 0x80) ? 1 : 0;
+            int signal = status[3] >> 4;
+
+            ESP_LOGI(TAG, "Stereo=%s, Signal%d\n", stereo, signal);
+
+            // delay without vTAskDelay
+            for (volatile int i = 0; i < 10000000; i++) {}
+        }
         // int joystick_x = gpio_get_level(JOYSTICK_READ_X);
         // joystick_get_states_calibrated(&state_x, &state_y);
         // ESP_LOGI(TAG, "X: %d; Y: %d", state_x, state_y);
 
-        si4703_read_regs();
+        // si4703_read_regs();
         ESP_LOGI(TAG, "In while loop");
     }
 };
