@@ -99,7 +99,7 @@ void tea5767_set_freq(float mhz) {
     uint8_t buf[5] = {0};
 
     // datasheet: https://cdn.sparkfun.com/assets/4/5/f/a/d/TEA5767.pdf
-    
+
     // pll controlls frequency for oscillator 
     // 4*(f_rf + f_if) / f_ref = N -> formula for highside injection -> comes from Datasheet
     // 4*(1XX MHz + 225 KHz) / 32668 = factor N for oscillator
@@ -133,7 +133,7 @@ void tea5767_set_freq(float mhz) {
     buf[3] = 0x10;
 
     // bit 8 and 7 are other options
-    // bit 6..0 -> unused
+    // bit 6..1 -> unused
     buf[4] = 0x00;
 
     ESP_ERROR_CHECK(
