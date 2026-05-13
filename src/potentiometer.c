@@ -19,11 +19,14 @@ void adc_init(void) {
 
     adc_oneshot_chan_cfg_t chan_cfg = {
         .bitwidth = ADC_BITWIDTH_12,
-        .atten = ADC_ATTEN_DB_11 // 0-3.3V range
+        .atten = ADC_ATTEN_DB_11 // Docs: ADC_ATTEN_DB_11 150 mV ~ 2450 mV
     };
-    // why adc chan 6?
+
+    // ADC1 Channel 6 is on PIN 7
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, ADC1_CHANNEL_6, &chan_cfg));
 
+    // calibration of adc
+    // https://docs.espressif.com/projects/esp-idf/en/v5.0/esp32c3/api-reference/peripherals/adc_calibration.html
     adc_cali_curve_fitting_config_t cali_cfg = {
         .unit_id = ADC_UNIT_1,
         .atten = ADC_ATTEN_DB_11,

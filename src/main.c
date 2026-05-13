@@ -56,9 +56,12 @@ static void on_pot_change(int value) {
     }
     frequency = channel;
     tea5767_set_freq(channel);
+
+    // write station name to first row of display
     const char *radio_station_name = get_channel_name(channel);
     lcd_set_cursor(0, 0);
     lcd_print(radio_station_name);
+
     // read signal strength from tea5767
     uint8_t status[5];
     if (i2c_master_read_from_device(
@@ -68,16 +71,18 @@ static void on_pot_change(int value) {
         5,
         pdMS_TO_TICKS(100)
     ) == ESP_OK) {
+        // show signal strength for 4s on second row of display
         int signal = status[3] >> 4;
         lcd_set_cursor(0, 1);
-        // wait 4s
         lcd_print(get_formatted_signal_strength(signal));
+        // show signal strength for 4s
         esp_rom_delay_us(4000000);
     } else {
         lcd_set_cursor(0, 1);
         lcd_print("Signal: n/a");
         esp_rom_delay_us(4000000);
     }
+    // after 4s show frequency of channel
     lcd_set_cursor(0, 1);
     lcd_print(get_formatted_frequency(channel));
 
@@ -86,23 +91,12 @@ static void on_pot_change(int value) {
 
 void app_main() {
 
-    esp_rom_delay_us(5000000);
+    esp_rom_delay_us(5000000);  // 5s wait, to ensure, that I see all logs. otherwise that was not the case
     ESP_LOGI(TAG, "Program start");
 
-    // i2c is currently connected with PIN 13 = SDA and PIN 14 SCL
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = 13,
-        .scl_io_num = 14,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = 1000,
-    };
-
-    // configure I2C
-    ESP_LOGI(TAG, "configure i2c");
-    i2c_param_config(I2C_NUM_1, &i2c_config);
-    i2c_driver_install(I2C_NUM_1, i2c_config.mode, 0, 0, 0);
+    
+    // connect to display
+    i2c_display_init();
 
     // setup fm radio unit (tea5767)
     i2c_init();
@@ -110,9 +104,9 @@ void app_main() {
     // init potentiometer
     adc_init();
 
-    // init LCD Display 
+    // init LCD Display (set cursor, set lines, set light etc)
     // (needs to be initialized after pot timer start
-    // since the pot timer updates the display on freq changes)
+    // since the potentiometer timer updates the display on freq changes)
     ESP_LOGI(TAG, "init lcd");
     lcd_init(); // weird sequence of commands
 
@@ -124,56 +118,5 @@ void app_main() {
     esp_timer_handle_t pot_timer;
     ESP_ERROR_CHECK(esp_timer_create(&args, &pot_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(pot_timer, 100000));
-
-
-    // configure controller pins as input
-    // gpio_config_t joystick_x_conf = {
-    //     .pin_bit_mask = (1ULL << JOYSTICK_READ_X),
-    //     .mode = GPIO_MODE_INPUT,
-    //     .pull_up_en = GPIO_PULLUP_ENABLE,
-    //     .pull_down_en = GPIO_PULLDOWN_DISABLE,
-    //     .intr_type = GPIO_INTR_DISABLE
-    // };
-    // gpio_config(&joystick_x_conf);
-    //     gpio_config_t joystick_y_conf = {
-    //     .pin_bit_mask = (1ULL << JOYSTICK_READ_Y),
-    //     .mode = GPIO_MODE_INPUT,
-    //     .pull_up_en = GPIO_PULLUP_ENABLE,
-    //     .pull_down_en = GPIO_PULLDOWN_DISABLE,
-    //     .intr_type = GPIO_INTR_DISABLE
-    // };
-    // gpio_config(&joystick_y_conf);
-    // setup_joystick();
-    // joystick_calibrate();
-    // int state_x = 0;
-    // int state_y = 0;
-
-    // si4703_init2();
-    // esp_rom_delay_us(100000);
-    // si4703_set_freq(102.4);
-
-
-
-    // while (1) {
-    //     esp_rom_delay_us(1000000);
-    //     ESP_LOGI(TAG, "Scanning for i2c");
-    //     i2c_scanner();
-        
-    //     //uint8_t status[5];
-
-    //     // if (i2c_master_read_from_device(
-    //     //     I2C_NUM_0,
-    //     //     TEA5767_ADDR,
-    //     //     status,
-    //     //     5,
-    //     //     pdMS_TO_TICKS(100)
-    //     // ) == ESP_OK) {
-    //     //     int stereo = (status[2] & 0x80) ? 1 : 0;
-    //     //     int signal = status[3] >> 4;
-
-    //     //     ESP_LOGI(TAG, "Stereo=%d, Signal=%d/15", stereo, signal);
-
-    //     // }
-    // }
 };
 

@@ -1,6 +1,9 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 
+static const char *TAG = "Display";
+
+
 esp_err_t lcd_write_byte(uint8_t b) {
     return i2c_master_write_to_device(
         I2C_NUM_1, 
@@ -110,3 +113,21 @@ void lcd_set_cursor(uint8_t col, uint8_t row) {
     uint8_t addr = (row == 0) ? 0x00 : 0x40;  // set 0100 0000 if row is 1, otherwise 0000 0000
     lcd_command(0x80 | (addr + col)); // 0x80 (1000 0000 -> 1st / 8th bit is to set to data command)
 };
+
+
+void i2c_display_init() {
+    // i2c is currently connected with PIN 13 = SDA and PIN 14 SCL
+    i2c_config_t i2c_config = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = 13,
+        .scl_io_num = 14,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = 1000,
+    };
+
+    // configure I2C
+    ESP_LOGI(TAG, "configure i2c");
+    i2c_param_config(I2C_NUM_1, &i2c_config);
+    i2c_driver_install(I2C_NUM_1, i2c_config.mode, 0, 0, 0);
+}

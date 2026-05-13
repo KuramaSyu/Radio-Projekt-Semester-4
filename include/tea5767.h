@@ -34,7 +34,7 @@ const char *get_channel_name(float channel);
 /**
  * initializes the tea5767 radio unit
  */
-void i2c_init(void);
+void i2c_tea5767_init(void);
 
 /**
  * writes the frequency into the register of the tea5767 unit

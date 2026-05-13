@@ -14,7 +14,7 @@
 
 static const char *RADIO_TAG = "radio";
 
-void i2c_init(void) {
+void i2c_tea5767_init(void) {
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = I2C_SDA,
