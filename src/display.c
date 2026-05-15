@@ -93,6 +93,11 @@ void lcd_init() {
     return;
 }
 
+void lcd_clear() {
+    lcd_command(0x01);  // clear
+    esp_rom_delay_us(2000);
+}
+
 /**
  * höchst räudig; sollte verboten sein; ist es auch in Rust
  */

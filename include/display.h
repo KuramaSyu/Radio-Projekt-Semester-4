@@ -11,3 +11,8 @@ void lcd_init();
 void lcd_print(const char *str);
 void lcd_set_cursor(uint8_t col, uint8_t row);
 void i2c_display_init();
+
+/**
+ * clears the display
+ */
+void lcd_clear();
