@@ -33,9 +33,6 @@ bool float_equals(float a, float b) {
     return fabs(a - b) < 0.01;
 };
 
-/**
- * Selects the station name based on the channel frequency
- */
 const char *get_channel_name(float channel) {
     static char station_name[17]; // 16 chars + null terminator
     int string_size = sizeof(station_name);
@@ -54,9 +51,6 @@ const char *get_channel_name(float channel) {
     return station_name;
 }
 
-/**
- * Returns a formatted channel in format "102.4 MHz"
- */
 const char *get_formatted_frequency(float channel) {
     static char freq_str[16];
     static char freq_str_padded[17]; // 16 chars + null terminator

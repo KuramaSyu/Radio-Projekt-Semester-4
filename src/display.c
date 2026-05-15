@@ -14,14 +14,12 @@ esp_err_t lcd_write_byte(uint8_t b) {
     );
 };
 
-/**
- * Enable display   
- */
 void lcd_pulse_enable(uint8_t data) {
-    lcd_write_byte(data | 0x04); // 0x04 = enable display -> set 1 at position 4
+    // trigger display to update
+    lcd_write_byte(data | 0x04); 
     esp_rom_delay_us(1);
-    lcd_write_byte(data & ~0x04); // remove the 0x04 which was set before
-    esp_rom_delay_us(50);
+    lcd_write_byte(data & ~0x04);
+    esp_rom_delay_us(1);
 };
 
 /**
@@ -40,15 +38,6 @@ void lcd_write_nibble(uint8_t nibble, uint8_t control) {
     lcd_pulse_enable(data);
 }
 
-/**
- * Sets a bit by setting 2 nibbles
- * 
- * parameters:
- * -----------
- * 
- * * value:
- * * control (bool): whether or not to set control bit (0 = data, 1 = control)
- */
 void lcd_send_byte(uint8_t value, uint8_t control) {
     uint8_t control_bit = control ? 0x01 : 0x00; // set control bit (first bit)
 
@@ -98,22 +87,12 @@ void lcd_clear() {
     esp_rom_delay_us(2000);
 }
 
-/**
- * höchst räudig; sollte verboten sein; ist es auch in Rust
- */
 void lcd_print(const char *str) {
     while (*str) {
         lcd_data(*str++);
     }
 }
 
-/**
- * parameters
- * ----------
- * 
- * * col (int): which column (0-15)?
- * * row (int): which row (0-1)?
- */
 void lcd_set_cursor(uint8_t col, uint8_t row) {
     uint8_t addr = (row == 0) ? 0x00 : 0x40;  // set 0100 0000 if row is 1, otherwise 0000 0000
     lcd_command(0x80 | (addr + col)); // 0x80 (1000 0000 -> 1st / 8th bit is to set to data command)

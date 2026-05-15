@@ -6,10 +6,8 @@
 #include "esp_log.h"
 
 /**
- * Args:
- * -----
- * * * value: int from 0..15
- * 
+ * @param signal_strength int from 0..15
+ *
  * Returns:
  * --------
  * string with format: Signal {gut/ok/schlecht}
@@ -27,7 +25,7 @@ const char *get_formatted_frequency(float channel);
 bool float_equals(float a, float b);
 
 /**
- * Returns a formatted channel label for the given frequency
+ * Selects the station name based on the channel frequency
  */
 const char *get_channel_name(float channel);
 

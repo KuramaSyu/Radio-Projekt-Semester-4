@@ -12,9 +12,6 @@
 
 void si4703_reset();
 
-/**
- * starts the radio tuner si4703
- */
 void si4703_reset() {
     ESP_LOGI(TAG, "Resetting SI4703 on GPIO%d", RST_PIN);
     gpio_set_level(SDA_PIN, 0);
@@ -36,9 +33,6 @@ void si4703_reset() {
 // radio tuner has 16 16Bit Registers
 uint16_t regs[16];
 
-/*
- * Reads the registers of si4703 into `regs` 
- */
 esp_err_t si4703_read_regs() {
     // reading is done in 8Bit
     uint8_t data[32];
@@ -66,28 +60,6 @@ esp_err_t si4703_read_regs() {
     return ESP_OK;
 }
 
-/*
- * Writes the content of `regs` into the si4703 device
- * by converting 16 bit regs to 8 bit regs and sending these
- * 
- * Registers:
- * -----------
- * 
- * * 0x00: Device ID
- * * 0x01: Chip ID
- * * 0x02: Power Configuration
- * * 0x03: Channels
- * * 0x05: Bit 3-0 (left to right) Volume
- * * 0x04-0x06: System Configuration
- * * 0x07-0x08: Tests
- * * 0x09: Boot Configuration (reserved)
- * * 0x0A: Status RSSI
- * * 0x0B: Read Channel
- * * 0x0C: RDSA (RDS Block A Data)
- * * 0x0D: RDSB
- * * 0x0E: RDSC
- * * 0x0F: RDSD
- */
 esp_err_t si4703_write_regs() {
     ESP_LOGD(TAG, "Writing to si4703");
     uint8_t data[12]; // data for 6 registers from 0x02 - 0x07
@@ -114,9 +86,6 @@ esp_err_t si4703_write_regs() {
     return ret;
 }
 
-/**
- * Scan I2C bus for responding devices (debug helper)
- */
 void i2c_scanner() {
     ESP_LOGI(TAG, "Starting I2C bus scan on I2C_NUM_%d at 100kHz", I2C_MASTER_NUM);
     uint8_t address;
@@ -137,11 +106,6 @@ void i2c_scanner() {
     ESP_LOGI(TAG, "I2C scan complete, found %d device(s)", found_count);
 }
 
-/**
- * starts up the chip,
- * sets power up register bits,
- * sets volume (stage 2 of 7)
- */
 esp_err_t si4703_init() {
     ESP_LOGI(TAG, "Initializing SI4703 at I2C address 0x%02X", I2C_ADDR);
     si4703_reset();
@@ -169,11 +133,6 @@ esp_err_t si4703_init() {
     return ESP_OK;
 }
 
-/**
- * starts up the chip,
- * sets power up register bits,
- * sets volume (stage 2 of 7)
- */
 esp_err_t si4703_init2() {
     // https://github.com/sparkfun/Si4703_FM_Tuner_Evaluation_Board/blob/master/Firmware/Si4703_Example/Si4703_Example.ino#L536-L573
     gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
@@ -202,15 +161,6 @@ esp_err_t si4703_init2() {
     return ESP_OK;
 }
 
-/**
- * sets the frequency of the radio tuner
- * @param freq_mhz frequency in MHz
- * 
- * 
- * channel is calculated by subtracting 87.5 MHz from the desired frequency 
- * and then multiplying by 10, because the channel spacing is 100 kHz (0.1 MHz). The freq
- * is set in register 0x03. This register also has a TUNE bit, which initiates the process
- */
 esp_err_t si4703_set_freq(float freq_mhz) {
     ESP_LOGI(TAG, "Setting frequency to %.1f MHz", freq_mhz);
     ESP_LOGD(TAG, "Reading registers before tuning");
