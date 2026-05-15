@@ -14,7 +14,7 @@
 
 static const char *RADIO_TAG = "radio";
 
-void i2c_tea5767_init(void) {
+void i2c_init(void) {
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = I2C_SDA,
@@ -75,6 +75,12 @@ float get_channel(int analog_value) {
     if (index >= len) index = len - 1;
 
     float channel = frequencies[index];
+    return channel;
+}
+
+float get_channel_free(int analog_value) {
+    // 87.5 MHz is the first channel, 108 MHz the last
+    float channel = 87.5 + (analog_value / 4096.0) * (108 - 87.5);
     return channel;
 }
 

@@ -34,7 +34,7 @@ const char *get_channel_name(float channel);
 /**
  * initializes the tea5767 radio unit
  */
-void i2c_tea5767_init(void);
+void i2c_init(void);
 
 /**
  * writes the frequency into the register of the tea5767 unit
@@ -46,3 +46,8 @@ void tea5767_set_freq(float mhz);
  */
 float get_channel(int analog_value);
 
+/**
+ * Retrieves the frequency directly from the potentiometer value
+ * where 87.5 MHz is the first channel and 108 MHz the last
+ */
+float get_channel_free(int analog_value);
