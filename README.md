@@ -168,9 +168,11 @@ Die folgende Tabelle stellt kurz die Vor- und Nachteile der beiden Modi gegenüb
 | Vorteile | einfachere Sendersuche; Rauschen zwischen Sendern wird übersprungen; Anzeige des Sendernamen | keine Beschränkung auf definierte Sender |
 | Nachteile | Beschränkung auf definierte Sender | Feinjustierungen beim Einstellen der Frequenz notwendig; keine Sendernamen |
 
-#Fazit
+# Fazit
 
-Im Rahmen des Projektes konnte ein funktionsfähiges UKW-Radio auf Basis des ESP32-S3-Mikrocontrollers und des Radio-Tuners TEA5767 erfolgreich umgesetzt werden. Das Ziel der benutzerfreundlichen Ein- und Ausgabe konnte durch ein Zusammenspiel aus Software und Hardware realisiert werden. Besonders wurde sich auf eine hardwarenahe Programmierung konzentriert. Durch die Verwendung der ESP-IDF anstelle des Arduino Frameworks hielt sich die Anzahl der verwendeten Bibliotheken in Grenzen und zentrale Komponenten, wie Benutzereingaben, Ansteuerung des Displays und Kommunikation über I2C mussten eigenhändig implementiert werden. So konnte ein tieferes Verständnis für die Funktionsweise von Mikrocontrollern, Interrups, Timern und Kommunikationsschnittstellen erlangt werden.
+Im Rahmen des Projektes konnte ein funktionsfähiges UKW-Radio auf Basis des ESP32-S3-Mikrocontrollers und des Radio-Tuners TEA5767 erfolgreich umgesetzt werden. Das Ziel der benutzerfreundlichen Ein- und Ausgabe konnte durch ein Zusammenspiel aus Software und Hardware realisiert werden. Besonders wurde sich auf eine hardwarenahe Programmierung konzentriert. 
+
+Durch die Verwendung der ESP-IDF anstelle des Arduino Frameworks hielt sich die Anzahl der verwendeten Bibliotheken in Grenzen und zentrale Komponenten, wie Benutzereingaben, Ansteuerung des Displays und Kommunikation über I2C mussten eigenhändig implementiert werden. So konnte ein tieferes Verständnis für die Funktionsweise von Mikrocontrollern, Interrups, Timern und Kommunikationsschnittstellen erlangt werden.
 
 Der modulare Aufbau des Programms gewährleistet eine klare und übersicktliche Struktur bietet zusätlich die Möglichkeit der Erweiterung. So kann das Programm jederzeit um weitere Modi, Ein- und Ausgabetools oder Funktionen ergänzt werden. 
 
