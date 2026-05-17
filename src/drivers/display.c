@@ -1,12 +1,14 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 
+#include "config.h"
+
 static const char *TAG = "Display";
 
 
 esp_err_t lcd_write_byte(uint8_t b) {
     return i2c_master_write_to_device(
-        I2C_NUM_1, 
+        I2C_NUM_1,
         0x27, // default address from datasheet is either 0x3F or 0x27
         &b,
         1,
@@ -16,7 +18,7 @@ esp_err_t lcd_write_byte(uint8_t b) {
 
 void lcd_pulse_enable(uint8_t data) {
     // trigger display to update
-    lcd_write_byte(data | 0x04); 
+    lcd_write_byte(data | 0x04);
     esp_rom_delay_us(1);
     lcd_write_byte(data & ~0x04);
     esp_rom_delay_us(1);
@@ -24,7 +26,7 @@ void lcd_pulse_enable(uint8_t data) {
 
 /**
  * writes data and sets display backlight on
- * 
+ *
  * parameters:
  * * control: sets the set bit via or. 1 mean data; 0 means command
  */
@@ -68,7 +70,7 @@ void lcd_init() {
     lcd_write_nibble(0x03, 0);
 
     // switch to 4-bit mode
-    lcd_write_nibble(0x02, 0);  
+    lcd_write_nibble(0x02, 0);
 
 
     lcd_command(0x28);  // function set (binary 0010 1000) 2 lines, 5x8 font
@@ -103,8 +105,8 @@ void i2c_display_init() {
     // i2c is currently connected with PIN 13 = SDA and PIN 14 SCL
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = 13,
-        .scl_io_num = 14,
+        .sda_io_num = DISPLAY_I2C_SDA_PIN,
+        .scl_io_num = DISPLAY_I2C_SCL_PIN,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = 1000,

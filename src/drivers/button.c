@@ -14,4 +14,3 @@ void button_init() {
     gpio_config(&button_conf);
 
 }
-

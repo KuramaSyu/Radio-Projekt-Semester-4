@@ -3,6 +3,8 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 
+#include "config.h"
+
 // Handle for the ADC oneshot unit
 // oneshot = not continuos
 static adc_oneshot_unit_handle_t adc_handle;
@@ -12,7 +14,7 @@ static adc_cali_handle_t cali_handle;
 
 void adc_init(void) {
     adc_oneshot_unit_init_cfg_t init_cfg = {
-        .unit_id = ADC_UNIT_1,
+        .unit_id = POTENTIOMETER_ADC_UNIT,
         .ulp_mode = ADC_ULP_MODE_DISABLE, // disables ultra-low-power co-processor sampling but use CPU
     };
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &adc_handle));
@@ -23,12 +25,12 @@ void adc_init(void) {
     };
 
     // ADC1 Channel 6 is on PIN 7
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, ADC1_CHANNEL_6, &chan_cfg));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, POTENTIOMETER_ADC_CHANNEL, &chan_cfg));
 
     // calibration of adc
     // https://docs.espressif.com/projects/esp-idf/en/v5.0/esp32c3/api-reference/peripherals/adc_calibration.html
     adc_cali_curve_fitting_config_t cali_cfg = {
-        .unit_id = ADC_UNIT_1,
+        .unit_id = POTENTIOMETER_ADC_UNIT,
         .atten = ADC_ATTEN_DB_11,
         .bitwidth = ADC_BITWIDTH_12
     };
@@ -39,7 +41,7 @@ void adc_init(void) {
 // returns value 0 - 4095
 int read_pot_raw(void) {
     int raw = 0;
-    ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, ADC1_CHANNEL_6, &raw));
+    ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, POTENTIOMETER_ADC_CHANNEL, &raw));
 
-    return raw; 
+    return raw;
 };

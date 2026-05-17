@@ -2,30 +2,29 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
-#define RST_PIN 12
+#include "config.h"
+
 #define I2C_ADDR 0x10
 #define I2C_MASTER_NUM I2C_NUM_0
-#define SDA_PIN 13
-#define SCL_PIN 14
 
 #define TAG "radio(si4703)"
 
 void si4703_reset();
 
 void si4703_reset() {
-    ESP_LOGI(TAG, "Resetting SI4703 on GPIO%d", RST_PIN);
-    gpio_set_level(SDA_PIN, 0);
-    ESP_LOGI(TAG, "Configuring reset pin GPIO%d", RST_PIN);
-    gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
+    ESP_LOGI(TAG, "Resetting SI4703 on GPIO%d", SI4703_RST_PIN);
+    gpio_set_level(SI4703_I2C_SDA_PIN, 0);
+    ESP_LOGI(TAG, "Configuring reset pin GPIO%d", SI4703_RST_PIN);
+    gpio_set_direction(SI4703_RST_PIN, GPIO_MODE_OUTPUT);
     vTaskDelay(pdMS_TO_TICKS(10));
 
     // set resset pin for a short duration to low, to start the tuner
     ESP_LOGI(TAG, "Pulling reset LOW");
-    gpio_set_level(RST_PIN, 0);
+    gpio_set_level(SI4703_RST_PIN, 0);
     vTaskDelay(pdMS_TO_TICKS(10));
     
     ESP_LOGI(TAG, "Pulling reset HIGH");
-    gpio_set_level(RST_PIN, 1);
+    gpio_set_level(SI4703_RST_PIN, 1);
     vTaskDelay(pdMS_TO_TICKS(100));  // Give chip time to stabilize after reset
     ESP_LOGI(TAG, "SI4703 reset complete");
 }
@@ -86,26 +85,6 @@ esp_err_t si4703_write_regs() {
     return ret;
 }
 
-void i2c_scanner() {
-    ESP_LOGI(TAG, "Starting I2C bus scan on I2C_NUM_%d at 100kHz", I2C_MASTER_NUM);
-    uint8_t address;
-    esp_err_t ackerr;
-    int found_count = 0;
-    for (address = 1; address < 127; address++) {
-        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_stop(cmd);
-        ackerr = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(50));
-        i2c_cmd_link_delete(cmd);
-        if (ackerr == ESP_OK) {
-            ESP_LOGI(TAG, "Found I2C device at address 0x%02X", address);
-            found_count++;
-        }
-    }
-    ESP_LOGI(TAG, "I2C scan complete, found %d device(s)", found_count);
-}
-
 esp_err_t si4703_init() {
     ESP_LOGI(TAG, "Initializing SI4703 at I2C address 0x%02X", I2C_ADDR);
     si4703_reset();
@@ -135,14 +114,14 @@ esp_err_t si4703_init() {
 
 esp_err_t si4703_init2() {
     // https://github.com/sparkfun/Si4703_FM_Tuner_Evaluation_Board/blob/master/Firmware/Si4703_Example/Si4703_Example.ino#L536-L573
-    gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_direction(SDA_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SI4703_RST_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SI4703_I2C_SDA_PIN, GPIO_MODE_OUTPUT);
 
-    gpio_set_level(SDA_PIN, 0); // SDIO to LOW
-    gpio_set_level(RST_PIN, 0); // RST to LOW
+    gpio_set_level(SI4703_I2C_SDA_PIN, 0); // SDIO to LOW
+    gpio_set_level(SI4703_RST_PIN, 0); // RST to LOW
     vTaskDelay(pdMS_TO_TICKS(1));
 
-    gpio_set_level(RST_PIN, 1); // RST to HIGH
+    gpio_set_level(SI4703_RST_PIN, 1); // RST to HIGH
     vTaskDelay(pdMS_TO_TICKS(1));
 
     si4703_read_regs();

@@ -4,11 +4,6 @@
 #include "esp_err.h"
 
 /**
- * Scan I2C bus for responding devices (debug helper)
- */
-void i2c_scanner(void);
-
-/**
  * starts the radio tuner si4703
  */
 void si4703_reset(void);
