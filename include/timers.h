@@ -1,5 +1,5 @@
-#ifndef TIMERS_H
-#define TIMERS_H
+#ifndef APP_TIMERS_H
+#define APP_TIMERS_H
 
 /**
  * A Timer which gets called from ESP-IDF.

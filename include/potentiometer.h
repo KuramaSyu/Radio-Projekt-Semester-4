@@ -1,5 +1,8 @@
+#ifndef APP_POTENTIOMETER_H
+#define APP_POTENTIOMETER_H
+
 /**
- * initializes the potentiometer by configuring 
+ * initializes the potentiometer by configuring
  * an analog digital converter
  */
 void adc_init(void);
@@ -12,3 +15,5 @@ void adc_init(void);
  * * int: 0..4095
  */
 int read_pot_raw(void);
+
+#endif

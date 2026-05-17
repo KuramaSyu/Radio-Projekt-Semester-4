@@ -1,3 +1,6 @@
+#ifndef APP_DISPLAY_H
+#define APP_DISPLAY_H
+
 #include "driver/i2c.h"
 #include "esp_log.h"
 
@@ -57,3 +60,5 @@ void i2c_display_init();
  * clears the display
  */
 void lcd_clear();
+
+#endif
