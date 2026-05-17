@@ -32,7 +32,7 @@ Die wichtigsten Komponenten werden im Folgenden nochmals näher betrachtet.
 
 ## ESP32-S3 Mikrocontroller
 
-Beim ESP32-S3 handelt es sich um einen Mikrocontroller der Firma Espressif. Er zeichnet sich durch einen Dual-Core-Prozessor, eine 240 MHz Taktfrequenz und eine Vielzahl von GPIO-Pins und Schnittstellen aus. Insbesondere die I2C-Schnittstelle ist zur Ansteuerung des Displays und des Radio-Tuners essentiell. Auch der interne ADC spielt eine große Rolle beim Auslesen des Potentiometers.
+Beim ESP32-S3 handelt es sich um einen Mikrocontroller der Firma Espressif. Er zeichnet sich durch einen Dual-Core-Prozessor, eine 240 MHz Taktfrequenz und eine Vielzahl von GPIO-Pins und Schnittstellen aus. Insbesondere die I2C-Schnittstelle ist zur Ansteuerung des Displays und des Radio-Tuners essenziell. Auch der interne ADC spielt eine große Rolle beim Auslesen des Potentiometers.
 
 ## TEA5767
 
@@ -58,7 +58,7 @@ Die folgende Abbildung zeigt den realen Aufbau der Schaltung:
 
 ![](images/physischer_Aufbau.png)
 
-Verbindungen:
+Die Verbindungen und Pin Belegungen werden im folgenden Diagramm dargestellt:
 
 ![](images/wiring.drawio.png)
 
@@ -66,7 +66,7 @@ Verbindungen:
 # Softwareentwicklung
 
 Als Entwicklungsumgebung wurde sich für Visual Studio Code mit der „Platform IO“-Extension entschieden. Das Programm wurde in C geschrieben und ist modular aufgebaut. Es wurde sich **gegen das Arduino Framework und stattdessen für ESP-IDF entschieden**, wodurch die verwendeten Bibliotheken reduziert wurden auf:
-- offizielle ESP-IDF Bibliotheken, welche mit der Installation vom Espressif-Installation-Manager "EIM" verfürbar sind (siehe: [offizieller Espressif-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressif-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radio-Tuner mussten selbst umgesetzt werden.
+- offizielle ESP-IDF Bibliotheken, welche mit der Installation vom Espressif-Installation-Manager "EIM" verfügbar sind (siehe: [offizieller Espressif-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressif-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radio-Tuner mussten selbst umgesetzt werden.
 - `stdio.h` verwendet für Input/Output und somit String-Formatierungen. Vor allem für das Display-Output verwendet
 - `math.h` verwendet für Float-Operationen
 
@@ -102,7 +102,7 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 
 
 ## Programmablauf
-Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (`src/timers.c:on_pot_change Notation: dateipfad:methode`). Der folgende Programm-Ablaufplan stellt sowohl die `main`-Funktion als auch das Timer-Event dar:
+Es wurde sich gegen einen klassischen While-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (`src/timers.c:on_pot_change Notation: dateipfad:methode`). Der folgende Programm-Ablaufplan stellt sowohl die `main`-Funktion als auch das Timer-Event dar:
 
 ![](images/Pap.drawio.png)
 
@@ -138,15 +138,15 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 ### Detaillierter Programmablauf:
 1. **Initialisierung des Interrupt-Handlers, der I2C-Verbindungen, des ADC und des Buttons**
 
-    Zu Beginn des Programms wird zunächst der Interrupt-Handler konfiguriert, um beim Drücken des Push-Buttons ein Event auszulösen. Anschließend wird die I2C-Verbindung zum Display und anschließend jene zum TEA5767 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4095 umwandelt. Als nächstes wird der Push-Button konfiguriert und im Anschluss das Display initialisiert.
+    Zu Beginn des Programms wird zunächst der Interrupt-Handler konfiguriert, um beim Drücken des Push-Buttons ein Event auszulösen. Anschließend wird die I2C-Verbindung zum Display und anschließend jene zum TEA5767 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4095 umwandelt. Als Nächstes wird der Push-Button konfiguriert und im Anschluss das Display initialisiert.
    
 2. **Initialisierung des Displays**
 
-    Dem Display wird zunächst drei Mal ein „reset“-Befehl gesendet, um es aus jeglichen Zuständen, in denen es sich befinden könnte, herauszuholen. Anschließend wird in der 4-Bit-Modus eingestellt, die Größe des Displays auf 2 Zeilen mit einer 5x8 Textgröße festgelegt. Daraufhin folgt ein Befehl zur Aktivierung des Displays, wobei der Cursor und das Blinken deaktiviert wird. Im Anschluss wird das Display kurz ausgeschalten, ein „clear“-Befehl wird gesendet und nach 2 Millisekunden wird das Display wieder eingeschalten, nachdem der „entry-mode“ gesetzt wurde. Damit ist die Initialisierung des Displays abgeschlossen und es folgt der Setup des Timers.
+    Dem Display wird zunächst drei Mal ein „reset“-Befehl gesendet, um es aus jeglichen Zuständen, in denen es sich befinden könnte, herauszuholen. Anschließend wird in der 4-Bit-Modus eingestellt, die Größe des Displays auf zwei Zeilen mit einer 5x8 Textgröße festgelegt. Daraufhin folgt ein Befehl zur Aktivierung des Displays, wobei der Cursor und das Blinken deaktiviert wird. Im Anschluss wird das Display kurz ausgeschalten, ein „clear“-Befehl wird gesendet und nach 2 Millisekunden wird das Display wieder eingeschalten, nachdem der „entry-mode“ gesetzt wurde. Damit ist die Initialisierung des Displays abgeschlossen und es folgt der Setup des Timers.
    
 3. **Setup des Timers**
 
-    Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen bestimmten Threshold, welcher abhängig vom aktuellen Modus ist (35 im freien, 80 im automatischen Modus), wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Falls das Radio sich im automatischn Modus befindet, prüft die Funktion, ob durch die Änderung ein Senderwechsel erfolgen soll.
+    Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen bestimmten Threshold, welcher abhängig vom aktuellen Modus ist (35 im freien, 80 im automatischen Modus), wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Falls das Radio sich im automatischen Modus befindet, prüft die Funktion, ob durch die Änderung ein Senderwechsel erfolgen soll.
 
    _Zur Veranschaulichung ein Beispiel:
     Sender A ist dem Potentiometer-Wertebereich 0-500 zugeordnet, Sender B dem Bereich von 501-1000. Der letzte Potentiometerwert betrug 380. Der aktuelle Sender ist daher Sender A. Nun wird eine Potentiometer-Änderung von 100 erfasst, der neue Wert beträgt also 480. Dieser liegt weiterhin im Bereich von Sender A, es findet also kein Senderwechsel statt. Nun wird eine weitere Potentiometer-Änderung von +100 erfasst, der neue Wert beträgt also 580. Dieser liegt im Bereich von Sender B, womit ein Senderwechsel eingeleitet wird._
@@ -155,9 +155,10 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 
     Befindet sich das Radio im freien Modus, wird die Frequenz direkt entsprechend der Potentiometeränderung angepasst und an den Radio-Tuner übermittelt. Anschließend wird diese Frequenz zur Darstellung an das Display übertragen, sowie der Befehl zur Anzeige des Modus-Indikators "FREI" am Ende der ersten Zeile. Zusätzlich wird die Signalstärke vom Radio-Modul ausgelesen und an das Display übergeben, um diese in Zeile 2 anzeigen zu lassen.
 
-4. **Setup des Interrupts**
+4. **Wechseln des Zustandes**
 
-    Neben dem Timer wird ebenfalls ein Interrupt registriert. Dieser löst aus, sobald der Push-Button gedrückt wird, welcher zum Umschalten zwischen automatisch und manuell dient. Um den Code weitestgehend simpel zu halten, wurde auf eine Interrupt-Queue verzichtet und der Interrupt wird direkt behandelt. Dadurch entsteht die Herausforderung, dass der Interrupt möglichst schnell ablaufen muss, wodruch nicht direkt im Interrupt das Display aktuallisiedrt werden sollte. Daher wurde sich für eine globale Variable `machine_state` (`include/app_state.h`) entschieden, welche zwischen den zwei Modi hin und her wechselt. Damit nun tatsächlich das Display aktuallisiert wird, wurde der Timer vom letzten Schritt mit einem Check erweitert, ob sich der Zustand (`machnine_state`) geändert hat. Falls das Zutrifft, wird das Display und die Frequenz auf jeden Fall aktuallisiert (wie auch im Timer-Ablauf dargestellt).
+    Sobald der Push-Button betätigt wird, löst der zu Programmbeginn initiierte Interrupt aus, welcher zum Umschalten zwischen automatischem und manuellem/freiem Modus dient. Um den Code weitestgehend simpel zu halten, wurde auf eine Interrupt-Queue verzichtet und der Interrupt wird direkt behandelt. Dadurch entsteht die Herausforderung, dass der Interrupt möglichst schnell ablaufen muss, wodurch nicht direkt im Interrupt das Display aktualisiert werden sollte. Daher wurde sich für eine globale Variable `machine_state` (`include/app_state.h`) entschieden, welche zwischen den zwei Modi hin und her wechselt. Damit nun tatsächlich das Display aktualisiert wird, wurde der Timer vom letzten Schritt mit einem Check erweitert, ob sich der Zustand (`machnine_state`) geändert hat. Falls dies zutrifft, wird das Display und die Frequenz auf jeden Fall aktualisiert (wie auch im Timer-Ablauf dargestellt).
+   
 ### Vergleich zwischen automatischem und freiem Modus
 
 | | Automatischer Modus | Freier Modus |
