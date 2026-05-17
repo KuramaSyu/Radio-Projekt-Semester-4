@@ -8,7 +8,7 @@ Im Rahmen des Projektes im Modul Embedded Systems wurde ein UKW-Radio auf Basis 
 
 # Motivation
 
-Das Radio ist noch heute ein wichtiges und weit verbreitetes Unterhaltungs- und Informationsmedium. Der Aufbau eines eigenen UKW-Empfängers bietet eine gute Gelegenheit, um theoretisches Wissen aus der Vorlesung in der Praxis anzuwenden und so ein tieferes Verständnis für die Funktionsweise von Mikrocontrollern zu entwickeln. Auch der Umgang mit unterschiedlichen elektronischen Komponenten und Kommunikationsschnittstellen kann im selben Kontext erprobt werden.
+Das Radio ist noch heute ein wichtiges und weit verbreitetes Unterhaltungs- und Informationsmedium. Der Aufbau eines eigenen UKW-Empfängers bietet eine gute Gelegenheit, um theoretisches Wissen aus der Vorlesung in der Praxis anzuwenden und so ein tieferes Verständnis für die Funktionsweise von Mikrocontrollern zu entwickeln. Auch der Umgang mit unterschiedlichen elektronischen Komponenten und Kommunikationsschnittstellen kann im selben Kontext erprobt und wichtige Erfahrungen im Bereich Embedded Systems gesammelt werden.
 
 
 # Verwendete Hardware-Komponenten
@@ -161,8 +161,17 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
    
 ### Vergleich zwischen automatischem und freiem Modus
 
+Die folgende Tabelle stellt kurz die Vor- und Nachteile der beiden Modi gegenüber:
+
 | | Automatischer Modus | Freier Modus |
  --- | --- | ---
 | Vorteile | einfachere Sendersuche; Rauschen zwischen Sendern wird übersprungen; Anzeige des Sendernamen | keine Beschränkung auf definierte Sender |
 | Nachteile | Beschränkung auf definierte Sender | Feinjustierungen beim Einstellen der Frequenz notwendig; keine Sendernamen |
 
+#Fazit
+
+Im Rahmen des Projektes konnte ein funktionsfähiges UKW-Radio auf Basis des ESP32-S3-Mikrocontrollers und des Radio-Tuners TEA5767 erfolgreich umgesetzt werden. Das Ziel der benutzerfreundlichen Ein- und Ausgabe konnte durch ein Zusammenspiel aus Software und Hardware realisiert werden. Besonders wurde sich auf eine hardwarenahe Programmierung konzentriert. Durch die Verwendung der ESP-IDF anstelle des Arduino Frameworks hielt sich die Anzahl der verwendeten Bibliotheken in Grenzen und zentrale Komponenten, wie Benutzereingaben, Ansteuerung des Displays und Kommunikation über I2C mussten eigenhändig implementiert werden. So konnte ein tieferes Verständnis für die Funktionsweise von Mikrocontrollern, Interrups, Timern und Kommunikationsschnittstellen erlangt werden.
+
+Der modulare Aufbau des Programms gewährleistet eine klare und übersicktliche Struktur bietet zusätlich die Möglichkeit der Erweiterung. So kann das Programm jederzeit um weitere Modi, Ein- und Ausgabetools oder Funktionen ergänzt werden. 
+
+Zusammenfasssend lässt sich sagen, dass durch dieses Projekt umfangreiche Kenntnisse im Umgang mit Mikrocontrollern, Schaltungen, Projektorganisation und Systemintegration gewonnen werden konnten. Des weiteren konnte theoretisches Wissen aus der Vorlesung praktisch angewendet und vertieft sowie wichtige Erfahrungen im Bereich Embedded Systems gesammelt werden.  
