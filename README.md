@@ -26,7 +26,7 @@ Folgende Tabelle gibt einen Überblick über alle verwendeten Komponenten:
 
 Die wichtigsten Komponenten werden im Folgenden nochmals näher betrachtet:
 
---- für jedes Bauteil noch ein Bild? ---
+![](images/physischer_Aufbau.png)
 
 ## ESP32-S3 Mikrocontroller
 
@@ -49,19 +49,16 @@ Als Ausgabegerät bietet sich ein LCD-Display an, um Informationen an den Benutz
 
 Alle Komponenten sind über das Breadboard oder Jumper-Kabel miteinander verbunden. Das folgende Blockschaltbild zeigt den groben Aufbau der Schaltung:
 
---- Button noch einfügen ---
+![](images/Blockschaltbild.png)
 
 
 Die folgende Abbildung zeigt den realen Aufbau der Schaltung:
 
-
---- hier Photo einfügen ---
-
+![](images/physischer_Aufbau.png)
 
 Verbindungen:
 
-
---- wiring Diagramm hier ---
+![](images/wiring.drawio.png)
 
 
 # Softwareentwicklung
@@ -72,7 +69,7 @@ Als Entwicklungsumgebung wurde sich für Visual Studio Code mit der „Platform 
 - `math.h` verwendet für Float-Operationen
 
 
-### Codestruktur
+## Codestruktur
 Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wichtiger Dateien, aber nicht aller Dateien.
 ```
 .
@@ -88,13 +85,13 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
     ├── timers.c
     └── view
 ```
-#### Ordner
+### Ordner
 - `src/`: Ordner, in welchem die Implementierungen aller Komponenten und der Startpunkt des Programms (`src/main.c`) liegen
 - `src/view`: Enthält Methoden, welche für die Display-Ausgabe verwendet werden (primär String-Formatierungen)
 - `src/drivers`: Enthält die Driver für alle verwendeten Komponenten, da es in der Espressiv-IDF nur sehr wenige fertige Driver gibt
 - `include/`: Zentraler Ordner für alle Header-Dateien. Diese definieren die Methoden der dazugehörigen `.c` Dateien und **enthalten die Doc-Strings der Methoden**. Es sind nur diejenigen Methoden definiert, welche auch außerhalb der jeweiligen `.c` Datei zu finden, also keine privaten Methoden sind.
 
-#### Wichtige Dateien
+### Wichtige Dateien
 - `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und einen Interrupt registriert. Diese sind für den Program-Ablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
 - `src/timers.c`: Enthält das Callback (`pot_timer_task`) für den in der Main-Funktion registrierten Timer. Dieser überprüft den Potentiometer-Wert und den Zustand des Programms (Automatisch/Manuell) und aktualisiert anschließend die Radiofrequenz und die Display-Ausgabe. Mehr dazu in Abschnitt "Programmablauf"
 - `src/interrupts.c`: Enthält den Callback für die, in `src/main.c:main` registrierten, Interrupt-Service-Routine (ISR). Diese löst aus, sobald der Push-Button betätigt wird (`src/drivers/button.c:button_init`). Der Knopfdruck ändert den Zustand des Programms zwischen automatisch und manuell. Da der Interrupt keine Queue nutzt, sondern direkt abläuft, muss dieser minimalistisch und kurz sein. Daher wird eine globale Variable `machine_state` geändert, welche vom, alle 100ms laufenden, Timer auf Änderung überprüft wird.
@@ -102,22 +99,24 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 - `include/config.h`: Enthält Definitionen für die verwendeten GPIO-Pins, ADCs und I2C-Adressen.
 
 
-### Programmablauf
-Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (src/timers.c:on_pot_change Notation: dateipfad:methode).
+## Programmablauf
+Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (src/timers.c:on_pot_change Notation: dateipfad:methode). Der folgende Programm-Ablaufplan stellt sowohl die `main`-Funktion als auch das Timer-Event dar:
 
-#### Auslösen der Display Updates
-Das Display wird unter folgenden Bedingungen aktuallisiert:
+![](images/Pap.drawio.png)
+
+### Auslösen der Display Updates
+Das Display wird unter folgenden Bedingungen aktualisiert:
 - Das Potentiometer wurde stark genug verändert ODER
 - Der verwendeten Modus wurde verändert (Manuel / Automatisch)
 Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie Modus, bei dem beliebige Frequenzen eingestellt werden können. Beide Modi werden im Folgenden näher betrachtet.
 
-#### Automatischer Modus
+### Automatischer Modus
 Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu wechseln und dabei das störende Rauschen „zwischen“ den Sendern zu überspringen. Folgende Sender werden dabei unterstützt:
 
 
 | Radiofrequenz | Sendername |
-| --- | --- |
-| 89.2 | R.SA |
+ --- | ---
+89.2 | R.SA 
 | 90.1 | MDR Jump |
 | 92.2 | MDR Sachsen |
 | 95.4 | MDR Kultur |
@@ -129,25 +128,20 @@ Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu 
 
 Das Wechseln der Radiofrequenz und damit des Senders erfolgt durch Bedienung des Drehreglers des Potentiometers.
 
-Der folgende Programmablaufplan gibt einen Überblick über den Ablauf der Main-Funktion sowie der Timer-Funktion:
 
-
---- PAP hier ---
-
-
-Detaillierter Programmablauf:
-1. Initialisierung der I2C-Verbindungen und des ADC
+### Detaillierter Programmablauf:
+1. **Initialisierung der I2C-Verbindungen und des ADC**
 Zu Beginn des Programms wird zunächst die I2C-Verbindung zum Display und anschließend jene zum TEA5768 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4096 umwandelt. Im Anschluss wird das Display initialisiert.
-2. Initialisierung des Displays
+2. **Initialisierung des Displays**
 Dem Display wird zunächst drei Mal ein „reset“-Befehl gesendet, um es aus jeglichen Zuständen, in denen es sich befinden könnte, herauszuholen. Anschließend wird in der 4-Bit-Modus eingestellt, die Größe des Displays auf 2 Zeilen mit einer 5x8 Textgröße festgelegt. Daraufhin folgt ein Befehl zur Aktivierung des Displays, wobei der Cursor und das Blinken deaktiviert wird. Im Anschluss wird das Display kurz ausgeschalten, ein „clear“-Befehl wird gesendet und nach 2 Millisekunden wird das Display wieder eingeschalten, nachdem der „entry-mode“ gesetzt wurde. Damit ist die Initialisierung des Displays abgeschlossen und es folgt der Setup des Timers.
-3. Setup des Timers
-Der Timer fungiert in diesem Programm als loop-Funktion und ersetzt damit die häufig verwendete while-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen Wert von 80, wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Diese Funktion prüft, ob durch die Änderung ein Senderwechsel erfolgen soll.
+3. **Setup des Timers**
+Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen Wert von 80, wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Diese Funktion prüft, ob durch die Änderung ein Senderwechsel erfolgen soll.
 
 Zur Veranschaulichung ein Beispiel:
 Sender A ist dem Potentiometer-Wertebereich 0-500 zugeordnet, Sender B dem Bereich von 501-1000. Der letzte Potentiometerwert betrug 380. Der aktuelle Sender ist daher Sender A. Nun wird eine Potentiometer-Änderung von 100 erfasst, der neue Wert beträgt also 480. Dieser liegt weiterhin im Bereich von Sender A, es findet also kein Senderwechsel statt. Nun wird eine weitere Potentiometer-Änderung von +100 erfasst, der neue Wert beträgt also 580. Dieser liegt im Bereich von Sender B, womit ein Senderwechsel eingeleitet wird.
 
 Der Befehl zur Änderung der Radiofrequenz wird also an den Radio-Tuner gesendet und dem Display wird der Sendername übergeben, welcher in Zeile 1 angezeigt werden soll. Anschließend wird vom Radio-Modul die Signalstärke ausgelesen und an das Display übermittelt, um diese für 4 Sekunden in Zeile 2 anzeigen zu lassen. Nach den 4 Sekunden wird die aktuelle Frequenz an das Display übertragen, welche anschließend in Zeile 2 angezeigt werden soll.
 
-Freier Modus
 
+### Freier Modus
 
