@@ -26,7 +26,7 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 - `src/`: Ordner, in welchem die Implementierungen aller Komponenten und der Startpunkt des Programms (`src/main.c`) liegen
 - `src/view`: Enthält Methoden, welche für die Display-Ausgabe verwendet werden (primär String-Formatierungen)
 - `src/drivers`: Enthält die Driver für alle verwendeten Komponenten, da es in der Espressiv-IDF nur sehr wenige fertige Driver gibt
-- `include/`: Zentraler Ordner für aller Header-Dateien. Diese definieren die Methoden der dazugehörigen `.c` Dateien und **enthalten die Doc-Strings der Methoden**. Es sind nur diejenigen Methoden definiert, welche auch außerhalb der jeweiligen `.c` Datei zu finden sind, also keine privaten Methoden sind.
+- `include/`: Zentraler Ordner für alle Header-Dateien. Diese definieren die Methoden der dazugehörigen `.c` Dateien und **enthalten die Doc-Strings der Methoden**. Es sind nur diejenigen Methoden definiert, welche auch außerhalb der jeweiligen `.c` Datei zu finden sind, also keine privaten Methoden sind.
 
 #### Wichtige Dateien
 - `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und einen Interrupt registriert. Diese sind für den Program-Ablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
@@ -39,7 +39,7 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 ### Programmablauf
 Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (src/timers.c:on_pot_change Notation: dateipfad:methode).
 
-#### uslösen der Display Updates
+#### Auslösen der Display Updates
 Das Display wird unter folgenden Bedingungen aktuallisiert:
 - Das Potentiometer wurde stark genug verändert ODER
 - Der verwendeten Modus wurde verändert (Manuel / Automatisch)
