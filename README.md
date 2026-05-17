@@ -110,7 +110,8 @@ Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird i
 Das Display wird unter folgenden Bedingungen aktualisiert:
 - Das Potentiometer wurde stark genug verändert ODER
 - Der verwendeten Modus wurde verändert (Manuel / Automatisch)
-Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie Modus, bei dem beliebige Frequenzen eingestellt werden können. Beide Modi werden im Folgenden näher betrachtet.
+
+Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie Modus, bei dem beliebige Frequenzen eingestellt werden können. Durch einen Knopfdruck kann beliebig zwischen den Modi umgeschalten werden. Beide Modi werden im Folgenden näher betrachtet.
 
 ### Automatischer Modus
 Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu wechseln und dabei das störende Rauschen „zwischen“ den Sendern zu überspringen. Folgende Sender werden dabei unterstützt:
@@ -131,7 +132,7 @@ Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu 
 Das Wechseln der Radiofrequenz und damit des Senders erfolgt durch Bedienung des Drehreglers des Potentiometers.
 
 
-### Detaillierter Programmablauf:
+### Detaillierter Programmablauf des automatischen Modus:
 1. **Initialisierung der I2C-Verbindungen und des ADC**
 
     Zu Beginn des Programms wird zunächst die I2C-Verbindung zum Display und anschließend jene zum TEA5768 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4096 umwandelt. Im Anschluss wird das Display initialisiert.
@@ -141,11 +142,13 @@ Das Wechseln der Radiofrequenz und damit des Senders erfolgt durch Bedienung des
 3. **Setup des Timers**
 
     Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen Wert von 80, wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Diese Funktion prüft, ob durch die Änderung ein Senderwechsel erfolgen soll.
-    Zur Veranschaulichung ein Beispiel:
-    Sender A ist dem Potentiometer-Wertebereich 0-500 zugeordnet, Sender B dem Bereich von 501-1000. Der letzte Potentiometerwert betrug 380. Der aktuelle Sender ist daher Sender A. Nun wird eine Potentiometer-Änderung von 100 erfasst, der neue Wert beträgt also 480. Dieser liegt weiterhin im Bereich von Sender A, es findet also kein Senderwechsel statt. Nun wird eine weitere Potentiometer-Änderung von +100 erfasst, der neue Wert beträgt also 580. Dieser liegt im Bereich von Sender B, womit ein Senderwechsel eingeleitet wird.
 
-    Der Befehl zur Änderung der Radiofrequenz wird also an den Radio-Tuner gesendet und dem Display wird der Sendername übergeben, welcher in Zeile 1 angezeigt werden soll. Anschließend wird vom Radio-Modul die Signalstärke ausgelesen und an das Display übermittelt, um diese für 4 Sekunden in Zeile 2 anzeigen zu lassen. Nach den 4 Sekunden wird die aktuelle Frequenz an das Display übertragen, welche anschließend in Zeile 2 angezeigt werden soll.
+   _Zur Veranschaulichung ein Beispiel:
+    Sender A ist dem Potentiometer-Wertebereich 0-500 zugeordnet, Sender B dem Bereich von 501-1000. Der letzte Potentiometerwert betrug 380. Der aktuelle Sender ist daher Sender A. Nun wird eine Potentiometer-Änderung von 100 erfasst, der neue Wert beträgt also 480. Dieser liegt weiterhin im Bereich von Sender A, es findet also kein Senderwechsel statt. Nun wird eine weitere Potentiometer-Änderung von +100 erfasst, der neue Wert beträgt also 580. Dieser liegt im Bereich von Sender B, womit ein Senderwechsel eingeleitet wird._
+
+    Der Befehl zur Änderung der Radiofrequenz wird dann an den Radio-Tuner gesendet und dem Display wird der Sendername übergeben, welcher in Zeile 1 angezeigt werden soll. Anschließend wird vom Radio-Modul die Signalstärke ausgelesen und an das Display übermittelt, um diese für 4 Sekunden in Zeile 2 anzeigen zu lassen. Nach den vier Sekunden wird die aktuelle Frequenz an das Display übertragen, welche anschließend in Zeile 2 angezeigt werden soll. Am Ende der zweiten Display-Zeile wird mit "AUTO" der aktuelle Modus abgebildet.  
 
 
 ### Freier Modus
 
+Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine Sprünge zwischen Radiosendern erfolgen, sondern der gesamte Frequenzbereich zwischen 87,5 und 108 MHz abgetastet werden kann. Bei Bedienung des Drehreglers können so auch Frequenzen "zwischen" den gängigen Radiosendern eingestellt werden. Des Weiteren unterscheidet sich die Displayanzeige bei Nutzung des freien Modus. Anstelle des Namens des Radiosenders wird nun die aktuelle Frequenz in Zeile 1 des Displays angezeigt sowie am Ende der Zeile mit "FREI" ein Indikator auf den aktuellen Modus. In Zeile 2 wird nun dauerhaft die Signalstärke angezeigt.   
