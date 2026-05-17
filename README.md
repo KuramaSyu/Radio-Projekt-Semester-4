@@ -176,4 +176,4 @@ Durch die Verwendung der ESP-IDF anstelle des Arduino Frameworks hielt sich die 
 
 Der modulare Aufbau des Programms gewährleistet eine klare und übersicktliche Struktur bietet zusätlich die Möglichkeit der Erweiterung. So kann das Programm jederzeit um weitere Modi, Ein- und Ausgabetools oder Funktionen ergänzt werden. 
 
-Zusammenfasssend lässt sich sagen, dass durch dieses Projekt umfangreiche Kenntnisse im Umgang mit Mikrocontrollern, Schaltungen, Projektorganisation und Systemintegration gewonnen werden konnten. Des weiteren konnte theoretisches Wissen aus der Vorlesung praktisch angewendet und vertieft sowie wichtige Erfahrungen im Bereich Embedded Systems gesammelt werden.  
+Zusammenfassend lässt sich sagen, dass durch dieses Projekt umfangreiche Kenntnisse im Umgang mit Mikrocontrollern, Schaltungen, Projektorganisation und Systemintegration gewonnen werden konnten. Des weiteren konnte theoretisches Wissen aus der Vorlesung praktisch angewendet und vertieft sowie wichtige Erfahrungen im Bereich Embedded Systems gesammelt werden.  
