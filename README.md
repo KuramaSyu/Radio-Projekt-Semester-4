@@ -119,7 +119,7 @@ Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu 
 
 | Radiofrequenz | Sendername |
  --- | ---
-89.2 | R.SA 
+| 89.2 | R.SA | 
 | 90.1 | MDR Jump |
 | 92.2 | MDR Sachsen |
 | 95.4 | MDR Kultur |
@@ -138,7 +138,7 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 ### Detaillierter Programmablauf:
 1. **Initialisierung des Interrupt-Handlers, der I2C-Verbindungen, des ADC und des Buttons**
 
-    Zu Beginn des Programms wird zunächst der Interrupt-Handler konfiguriert, um beim Drücken des Push-Buttons ein Event auszulösen. Anschließend wird die I2C-Verbindung zum Display und anschließend jene zum TEA5768 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4096 umwandelt. Als nächstes wird der Push-Button konfiguriert und im Anschluss das Display initialisiert.
+    Zu Beginn des Programms wird zunächst der Interrupt-Handler konfiguriert, um beim Drücken des Push-Buttons ein Event auszulösen. Anschließend wird die I2C-Verbindung zum Display und anschließend jene zum TEA5767 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4095 umwandelt. Als nächstes wird der Push-Button konfiguriert und im Anschluss das Display initialisiert.
    
 2. **Initialisierung des Displays**
 
@@ -155,5 +155,10 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 
     Befindet sich das Radio im freien Modus, wird die Frequenz direkt entsprechend der Potentiometeränderung angepasst und an den Radio-Tuner übermittelt. Anschließend wird diese Frequenz zur Darstellung an das Display übertragen, sowie der Befehl zur Anzeige des Modus-Indikators "FREI" am Ende der ersten Zeile. Zusätzlich wird die Signalstärke vom Radio-Modul ausgelesen und an das Display übergeben, um diese in Zeile 2 anzeigen zu lassen.
 
+### Vergleich zwischen automatischem und freiem Modus
 
+| | Automatischer Modus | Freier Modus |
+ --- | ---
+| Vorteile | einfachere Sendersuche; Rauschen zwischen Sendern wird übersprungen; Anzeige des Sendernamen | keine Beschränkung auf definierte Sender |
+| Nachteile | Beschränkung auf definierte Sender | Feinjustierungen beim Einstellen der Frequenz notwendig; keine Sendernamen |
 
