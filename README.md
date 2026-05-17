@@ -1,6 +1,8 @@
 # Aufbau eines UKW-Radios mit benutzerfreundlicher Ein- und Ausgabe
 _Projektarbeit von Jessica Kraus (s3005786) und Paul Zenker (s3005664)_
 
+> Diese Datei ist die `README.md` des Repositories, welche auch hier: [https://github.com/KuramaSyu/Radio-Projekt-Semester-4](https://github.com/KuramaSyu/Radio-Projekt-Semester-4) gelesen werden kann. Die PDF ist ein Export der `README.md`.
+
 Im Rahmen des Projektes im Modul Embedded Systems wurde ein UKW-Radio auf Basis eines ESP32-Mikrocontrollers und des Radio-Tuner-Moduls TEA5767 gefertigt. Ziel war ein funktionsfähiges Radiogerät mit benutzerfreundlicher Ein- und Ausgabe, welches durch die Kombination aus Hardware und Software umgesetzt werden konnte. So steht als Eingabegerät ein Potentiometer zur Verfügung, mit welchem die Frequenz und damit der Radiosender geändert werden kann. Die Ausgabe wurde durch ein LCD-Display realisiert, auf welchem nützliche Informationen ausgegeben werden. Es wurde weitestgehend auf Bibliotheken verzichtet, um eine möglichst hardwarenahe Programmierung zu gewährleisten.
 
 
