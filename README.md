@@ -155,6 +155,9 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 
     Befindet sich das Radio im freien Modus, wird die Frequenz direkt entsprechend der Potentiometeränderung angepasst und an den Radio-Tuner übermittelt. Anschließend wird diese Frequenz zur Darstellung an das Display übertragen, sowie der Befehl zur Anzeige des Modus-Indikators "FREI" am Ende der ersten Zeile. Zusätzlich wird die Signalstärke vom Radio-Modul ausgelesen und an das Display übergeben, um diese in Zeile 2 anzeigen zu lassen.
 
+4. **Setup des Interrupts**
+
+    Neben dem Timer wird ebenfalls ein Interrupt registriert. Dieser löst aus, sobald der Push-Button gedrückt wird, welcher zum Umschalten zwischen automatisch und manuell dient. Um den Code weitestgehend simpel zu halten, wurde auf eine Interrupt-Queue verzichtet und der Interrupt wird direkt behandelt. Dadurch entsteht die Herausforderung, dass der Interrupt möglichst schnell ablaufen muss, wodruch nicht direkt im Interrupt das Display aktuallisiedrt werden sollte. Daher wurde sich für eine globale Variable `machine_state` (`include/app_state.h`) entschieden, welche zwischen den zwei Modi hin und her wechselt. Damit nun tatsächlich das Display aktuallisiert wird, wurde der Timer vom letzten Schritt mit einem Check erweitert, ob sich der Zustand (`machnine_state`) geändert hat. Falls das Zutrifft, wird das Display und die Frequenz auf jeden Fall aktuallisiert (wie auch im Timer-Ablauf dargestellt).
 ### Vergleich zwischen automatischem und freiem Modus
 
 | | Automatischer Modus | Freier Modus |
