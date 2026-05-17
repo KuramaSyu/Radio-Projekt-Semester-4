@@ -66,13 +66,13 @@ Verbindungen:
 # Softwareentwicklung
 
 Als Entwicklungsumgebung wurde sich für Visual Studio Code mit der „Platform IO“-Extension entschieden. Das Programm wurde in C geschrieben und ist modular aufgebaut. Es wurde sich **gegen das Arduino Framework und stattdessen für ESP-IDF entschieden**, wodurch die verwendeten Bibliotheken reduziert wurden auf:
-- offizielle ESP-IDF Bibliotheken welche mit der Installation vom Espressif-Installation-Manager "EIM" verfürbar sind (siehe: [offizieller Espressif-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressif-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radiotuner mussten selbst umgesetzt werden.
-- `stdio.h` verwendet für Input/Output und somit String-Formatierunen. Vorallem für das Display-Output verwendet
+- offizielle ESP-IDF Bibliotheken, welche mit der Installation vom Espressif-Installation-Manager "EIM" verfürbar sind (siehe: [offizieller Espressif-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressif-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radio-Tuner mussten selbst umgesetzt werden.
+- `stdio.h` verwendet für Input/Output und somit String-Formatierungen. Vor allem für das Display-Output verwendet
 - `math.h` verwendet für Float-Operationen
 
 
 ## Codestruktur
-Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wichtiger Dateien, aber nicht aller Dateien.
+Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wichtiger, allerdings nicht aller Dateien.
 ```
 .
 ├── README.md
@@ -90,13 +90,13 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 ### Ordner
 - `src/`: Ordner, in welchem die Implementierungen aller Komponenten und der Startpunkt des Programms (`src/main.c`) liegen
 - `src/view/`: Enthält Methoden, welche für die Display-Ausgabe verwendet werden (primär String-Formatierungen)
-- `src/drivers/`: Enthält die Driver für alle verwendeten Komponenten, da es in der Espressiv-IDF nur sehr wenige fertige Driver gibt
+- `src/drivers/`: Enthält die Driver für alle verwendeten Komponenten, da es in der Espressif-IDF nur sehr wenige fertige Driver gibt
 - `include/`: Zentraler Ordner für alle Header-Dateien. Diese definieren die Methoden der dazugehörigen `.c` Dateien und **enthalten die Doc-Strings der Methoden**. Es sind nur diejenigen Methoden definiert, welche auch außerhalb der jeweiligen `.c` Datei zu finden, also keine privaten Methoden sind.
 
 ### Wichtige Dateien
-- `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und ein Interrupt registriert. Diese sind für den Programablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
-- `src/timers.c`: Enthält das Callback (`pot_timer_task`) für den in der Main-Funktion registrierten Timer. Dieser überprüft den Potentiometer-Wert und den Zustand des Programms (Automatisch/Manuell) und aktualisiert anschließend die Radiofrequenz und die Display-Ausgabe. Mehr dazu in Abschnitt "Programmablauf"
-- `src/interrupts.c`: Enthält den Callback für die, in `src/main.c:main` registrierten, Interrupt-Service-Routine (ISR). Diese löst aus, sobald der Push-Button betätigt wird (`src/drivers/button.c:button_init`). Der Knopfdruck ändert den Zustand des Programms zwischen automatisch und manuell. Da der Interrupt keine Queue nutzt, sondern direkt abläuft, muss dieser minimalistisch und kurz sein. Daher wird eine globale Variable `machine_state` geändert, welche vom, alle 100ms laufenden, Timer auf Änderung überprüft wird.
+- `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und ein Interrupt registriert. Diese sind für den Programmablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
+- `src/timers.c`: Enthält das Callback (`pot_timer_task`) für den in der Main-Funktion registrierten Timer. Dieser überprüft den Potentiometerwert und den Zustand (Modus) des Programms (Automatisch/Manuell) und aktualisiert anschließend die Radiofrequenz und die Display-Ausgabe. Mehr dazu in Abschnitt "Programmablauf"
+- `src/interrupts.c`: Enthält den Callback für die, in `src/main.c:main` registrierten, Interrupt-Service-Routine (ISR). Diese löst aus, sobald der Push-Button betätigt wird (`src/drivers/button.c:button_init`). Der Knopfdruck ändert den Zustand/Modus des Programms zwischen automatisch und manuell. Da der Interrupt keine Queue nutzt, sondern direkt abläuft, muss dieser minimalistisch und kurz sein. Daher wird eine globale Variable `machine_state` geändert, welche vom, alle 100ms laufenden, Timer auf Änderung überprüft wird.
 - `include/app_state.h`: Definiert ein Enum und die globalen Variablen für den Zustand. Dieser ist entweder `STATE_MANUAL` oder `STATE_HALF_AUTO`.
 - `include/config.h`: Enthält Definitionen für die verwendeten GPIO-Pins, ADCs und I2C-Adressen.
 
@@ -109,7 +109,7 @@ Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird i
 ### Auslösen der Display Updates
 Das Display wird unter folgenden Bedingungen aktualisiert:
 - Das Potentiometer wurde stark genug verändert ODER
-- Der verwendeten Modus wurde verändert (Frei / Automatisch)
+- Der verwendete Modus wurde verändert (Frei / Automatisch)
 
 Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie bzw. manuelle Modus, bei dem beliebige Frequenzen eingestellt werden können. Durch einen Knopfdruck kann beliebig zwischen den Modi umgeschalten werden. Beide Modi werden im Folgenden näher betrachtet.
 
