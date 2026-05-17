@@ -8,8 +8,8 @@ static const char *TAG = "Display";
 
 esp_err_t lcd_write_byte(uint8_t b) {
     return i2c_master_write_to_device(
-        I2C_NUM_1,
-        0x27, // default address from datasheet is either 0x3F or 0x27
+        DISPLAY_I2C_PORT,
+        DISPLAY_I2C_ADDR, // default address from datasheet is either 0x3F or 0x27
         &b,
         1,
         1000 / portTICK_PERIOD_MS
@@ -114,6 +114,6 @@ void i2c_display_init() {
 
     // configure I2C
     ESP_LOGI(TAG, "configure i2c");
-    i2c_param_config(I2C_NUM_1, &i2c_config);
-    i2c_driver_install(I2C_NUM_1, i2c_config.mode, 0, 0, 0);
+    i2c_param_config(DISPLAY_I2C_PORT, &i2c_config);
+    i2c_driver_install(DISPLAY_I2C_PORT, i2c_config.mode, 0, 0, 0);
 }

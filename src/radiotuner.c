@@ -4,8 +4,7 @@
 
 #include "config.h"
 
-#define I2C_ADDR 0x10
-#define I2C_MASTER_NUM I2C_NUM_0
+#define I2C_MASTER_NUM RADIO_I2C_PORT
 
 #define TAG "radio(si4703)"
 
@@ -39,7 +38,7 @@ esp_err_t si4703_read_regs() {
     // access device
     esp_err_t ret = i2c_master_read_from_device(
         I2C_MASTER_NUM,
-        I2C_ADDR,
+        SI4703_I2C_ADDR,
         data,
         32,
         pdMS_TO_TICKS(100)
@@ -74,7 +73,7 @@ esp_err_t si4703_write_regs() {
     // access device
     esp_err_t ret = i2c_master_write_to_device(
         I2C_MASTER_NUM,
-        I2C_ADDR,
+        SI4703_I2C_ADDR,
         data,
         12,
         pdMS_TO_TICKS(100)
@@ -86,7 +85,7 @@ esp_err_t si4703_write_regs() {
 }
 
 esp_err_t si4703_init() {
-    ESP_LOGI(TAG, "Initializing SI4703 at I2C address 0x%02X", I2C_ADDR);
+    ESP_LOGI(TAG, "Initializing SI4703 at I2C address 0x%02X", SI4703_I2C_ADDR);
     si4703_reset();
     
     // Scan I2C bus to debug
