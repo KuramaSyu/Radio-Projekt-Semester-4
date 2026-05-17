@@ -66,7 +66,7 @@ Verbindungen:
 # Softwareentwicklung
 
 Als Entwicklungsumgebung wurde sich für Visual Studio Code mit der „Platform IO“-Extension entschieden. Das Programm wurde in C geschrieben und ist modular aufgebaut. Es wurde sich **gegen das Arduino Framework und stattdessen für ESP-IDF entschieden**, wodurch die verwendeten Bibliotheken reduziert wurden auf:
-- offizielle ESP-IDF Bibliotheken welche mit der Installation vom Espressiv-Installation-Manager "EIM" verfürbar sind (siehe: [offizieller Espressiv-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressiv-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radiotuner mussten selbst umgesetzt werden.
+- offizielle ESP-IDF Bibliotheken welche mit der Installation vom Espressif-Installation-Manager "EIM" verfürbar sind (siehe: [offizieller Espressif-Installationsguide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/windows-setup.html)). Das Espressif-Framework ist verglichen mit Arduino sehr minimalistisch. Driver für I2C und das Ansteuern der GPIO-Pins sind verfügbar; Driver spezifischer Teile, wie ein Push-Button, Display oder Radiotuner mussten selbst umgesetzt werden.
 - `stdio.h` verwendet für Input/Output und somit String-Formatierunen. Vorallem für das Display-Output verwendet
 - `math.h` verwendet für Float-Operationen
 
@@ -102,16 +102,16 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 
 
 ## Programmablauf
-Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (src/timers.c:on_pot_change Notation: dateipfad:methode). Der folgende Programm-Ablaufplan stellt sowohl die `main`-Funktion als auch das Timer-Event dar:
+Es wurde sich gegen einen klassischen while-Loop entschieden, stattdessen wird in der Main-Funktion ein Timer registriert, welcher alle 100ms ausgelöst wird und gegebenenfalls ein Event für Potentiometer-Änderung auslöst (`src/timers.c:on_pot_change Notation: dateipfad:methode`). Der folgende Programm-Ablaufplan stellt sowohl die `main`-Funktion als auch das Timer-Event dar:
 
 ![](images/Pap.drawio.png)
 
 ### Auslösen der Display Updates
 Das Display wird unter folgenden Bedingungen aktualisiert:
 - Das Potentiometer wurde stark genug verändert ODER
-- Der verwendeten Modus wurde verändert (Manuel / Automatisch)
+- Der verwendeten Modus wurde verändert (Frei / Automatisch)
 
-Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie Modus, bei dem beliebige Frequenzen eingestellt werden können. Durch einen Knopfdruck kann beliebig zwischen den Modi umgeschalten werden. Beide Modi werden im Folgenden näher betrachtet.
+Für das Radio wurden zwei unterschiedliche Modi implementiert: der automatische Modus, bei dem nur zwischen fest definierten Sendern/Frequenzen umgeschalten werden kann und der freie bzw. manuelle Modus, bei dem beliebige Frequenzen eingestellt werden können. Durch einen Knopfdruck kann beliebig zwischen den Modi umgeschalten werden. Beide Modi werden im Folgenden näher betrachtet.
 
 ### Automatischer Modus
 Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu wechseln und dabei das störende Rauschen „zwischen“ den Sendern zu überspringen. Folgende Sender werden dabei unterstützt:
@@ -131,7 +131,7 @@ Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu 
 
 Das Wechseln der Radiofrequenz und damit des Senders erfolgt durch Bedienung des Drehreglers des Potentiometers.
 
-### Freier Modus
+### Manueller / Freier Modus
 
 Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine Sprünge zwischen Radiosendern erfolgen, sondern der gesamte Frequenzbereich zwischen 87,5 und 108 MHz abgetastet werden kann. Bei Bedienung des Drehreglers können so auch Frequenzen "zwischen" den gängigen Radiosendern eingestellt werden. Des Weiteren unterscheidet sich die Displayanzeige bei Nutzung des freien Modus. Anstelle des Namens des Radiosenders wird nun die aktuelle Frequenz in Zeile 1 des Displays angezeigt sowie am Ende der Zeile mit "FREI" ein Indikator auf den aktuellen Modus. In Zeile 2 wird nun dauerhaft die Signalstärke angezeigt.   
 
