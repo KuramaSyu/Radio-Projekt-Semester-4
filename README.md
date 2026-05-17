@@ -158,7 +158,7 @@ Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine 
 ### Vergleich zwischen automatischem und freiem Modus
 
 | | Automatischer Modus | Freier Modus |
- --- | ---
+ --- | --- | ---
 | Vorteile | einfachere Sendersuche; Rauschen zwischen Sendern wird übersprungen; Anzeige des Sendernamen | keine Beschränkung auf definierte Sender |
 | Nachteile | Beschränkung auf definierte Sender | Feinjustierungen beim Einstellen der Frequenz notwendig; keine Sendernamen |
 
