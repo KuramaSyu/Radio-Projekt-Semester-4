@@ -40,7 +40,7 @@ void i2c_init(void);
 void tea5767_set_freq(float mhz);
 
 /**
- * Retrieves the channel by slicing the pot range into equally sized parts
+ * Retrieves the channel by slicing the potentiometer range into equally sized parts
  */
 float get_channel(int analog_value);
 

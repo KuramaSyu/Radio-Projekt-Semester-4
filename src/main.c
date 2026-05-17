@@ -92,7 +92,7 @@ static void pot_timer_task(void *arg) {
         abs(pot_raw_value - now) > potentiometer_change_threshold  // big enough change
         || machine_state != last_machine_state  // OR state change
     ) {
-        // pot change is not just noice/jitter -> call event
+        // potentiometer change is not just noice/jitter -> call event
         ESP_LOGI(TAG, "Dispatch potentiometer change (v=%d)", now);
         on_pot_change(now);
         pot_raw_value = now;
@@ -188,7 +188,7 @@ void app_main() {
     button_init();
 
     // init LCD Display (set cursor, set lines, set light etc)
-    // (needs to be initialized after pot timer start
+    // (needs to be initialized after potentiometer timer start
     // since the potentiometer timer updates the display on freq changes)
     ESP_LOGI(TAG, "init lcd");
     lcd_init(); // weird sequence of commands
