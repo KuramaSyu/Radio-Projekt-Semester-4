@@ -44,7 +44,7 @@ Beim Potentiometer handelt es sich um einen veränderbaren Widerstand, dessen Au
 
 ## Display
 
-Als Ausgabegerät bietet sich ein LCD-Display an, um Informationen an den Benutzer zu übermitteln. Das verwendete Display bietet zwei Zeilen, auf denen sich je 16 Zeichen anzeigen lassen. Es wird über eine I2C-Schnittstelle vom ESP32 initialisiert und gesteuert. Über das Display werden dem Benutzer der aktuell eingestellte Modus, die Radiofrequenz, die aktuelle Signalstärke sowie gegebenenfalls der Name des eingestellten Radiosenders visuell bereitgestellt. In der oberen Zeile wird der Name des jeweiligen Radiosenders angezeigt. Beim Senderwechsel zeigt die untere Zeile für 4 Sekunden die Signalstärke, die vom TEA5767 ausgelesen wird, anschließend wird die aktuelle Frequenz angezeigt.
+Als Ausgabegerät bietet sich ein LCD-Display an, um Informationen an den Benutzer zu übermitteln. Das verwendete Display bietet zwei Zeilen, auf denen sich je 16 Zeichen anzeigen lassen. Es wird über eine I2C-Schnittstelle vom ESP32 initialisiert und gesteuert. Über das Display werden dem Benutzer der aktuell eingestellte Modus, die Radiofrequenz, die aktuelle Signalstärke sowie gegebenenfalls der Name des eingestellten Radiosenders visuell bereitgestellt.
 
 
 # Schaltungsaufbau
@@ -94,7 +94,7 @@ Der folgende Codeblock stellt den Aufbau des Projektes dar, einschließlich wich
 - `include/`: Zentraler Ordner für alle Header-Dateien. Diese definieren die Methoden der dazugehörigen `.c` Dateien und **enthalten die Doc-Strings der Methoden**. Es sind nur diejenigen Methoden definiert, welche auch außerhalb der jeweiligen `.c` Datei zu finden, also keine privaten Methoden sind.
 
 ### Wichtige Dateien
-- `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und einen Interrupt registriert. Diese sind für den Program-Ablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
+- `src/main.c`: Der Startpunkt des Programms. Hier werden alle Komponenten initialisiert (Display, Radio-Tuner, ADC für das Potentiometer, GPIO-Konfiguration für den Push-Button). Nach der Initialisierung wird ein Timer und ein Interrupt registriert. Diese sind für den Programablauf verantwortlich. Mehr dazu in `src/timers.c` und `src/interrupts.c`
 - `src/timers.c`: Enthält das Callback (`pot_timer_task`) für den in der Main-Funktion registrierten Timer. Dieser überprüft den Potentiometer-Wert und den Zustand des Programms (Automatisch/Manuell) und aktualisiert anschließend die Radiofrequenz und die Display-Ausgabe. Mehr dazu in Abschnitt "Programmablauf"
 - `src/interrupts.c`: Enthält den Callback für die, in `src/main.c:main` registrierten, Interrupt-Service-Routine (ISR). Diese löst aus, sobald der Push-Button betätigt wird (`src/drivers/button.c:button_init`). Der Knopfdruck ändert den Zustand des Programms zwischen automatisch und manuell. Da der Interrupt keine Queue nutzt, sondern direkt abläuft, muss dieser minimalistisch und kurz sein. Daher wird eine globale Variable `machine_state` geändert, welche vom, alle 100ms laufenden, Timer auf Änderung überprüft wird.
 - `include/app_state.h`: Definiert ein Enum und die globalen Variablen für den Zustand. Dieser ist entweder `STATE_MANUAL` oder `STATE_HALF_AUTO`.
@@ -131,24 +131,29 @@ Der automatische Modus bietet die Möglichkeit zwischen festgelegten Sendern zu 
 
 Das Wechseln der Radiofrequenz und damit des Senders erfolgt durch Bedienung des Drehreglers des Potentiometers.
 
+### Freier Modus
 
-### Detaillierter Programmablauf des automatischen Modus:
-1. **Initialisierung der I2C-Verbindungen und des ADC**
+Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine Sprünge zwischen Radiosendern erfolgen, sondern der gesamte Frequenzbereich zwischen 87,5 und 108 MHz abgetastet werden kann. Bei Bedienung des Drehreglers können so auch Frequenzen "zwischen" den gängigen Radiosendern eingestellt werden. Des Weiteren unterscheidet sich die Displayanzeige bei Nutzung des freien Modus. Anstelle des Namens des Radiosenders wird nun die aktuelle Frequenz in Zeile 1 des Displays angezeigt sowie am Ende der Zeile mit "FREI" ein Indikator auf den aktuellen Modus. In Zeile 2 wird nun dauerhaft die Signalstärke angezeigt.   
 
-    Zu Beginn des Programms wird zunächst die I2C-Verbindung zum Display und anschließend jene zum TEA5768 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4096 umwandelt. Im Anschluss wird das Display initialisiert.
+### Detaillierter Programmablauf:
+1. **Initialisierung des Interrupt-Handlers, der I2C-Verbindungen, des ADC und des Buttons**
+
+    Zu Beginn des Programms wird zunächst der Interrupt-Handler konfiguriert, um beim Drücken des Push-Buttons ein Event auszulösen. Anschließend wird die I2C-Verbindung zum Display und anschließend jene zum TEA5768 konfiguriert. Darauf folgt die Initialisierung des ADC, welcher die ausgelesenen analogen Werte des Potentiometers in digitale Werte im Bereich von 0-4096 umwandelt. Als nächstes wird der Push-Button konfiguriert und im Anschluss das Display initialisiert.
+   
 2. **Initialisierung des Displays**
 
     Dem Display wird zunächst drei Mal ein „reset“-Befehl gesendet, um es aus jeglichen Zuständen, in denen es sich befinden könnte, herauszuholen. Anschließend wird in der 4-Bit-Modus eingestellt, die Größe des Displays auf 2 Zeilen mit einer 5x8 Textgröße festgelegt. Daraufhin folgt ein Befehl zur Aktivierung des Displays, wobei der Cursor und das Blinken deaktiviert wird. Im Anschluss wird das Display kurz ausgeschalten, ein „clear“-Befehl wird gesendet und nach 2 Millisekunden wird das Display wieder eingeschalten, nachdem der „entry-mode“ gesetzt wurde. Damit ist die Initialisierung des Displays abgeschlossen und es folgt der Setup des Timers.
+   
 3. **Setup des Timers**
 
-    Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen Wert von 80, wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Diese Funktion prüft, ob durch die Änderung ein Senderwechsel erfolgen soll.
+    Der Timer fungiert in diesem Programm als Loop-Funktion und ersetzt damit die häufig verwendete While-Schleife. Ziel ist es, periodisch den Potentiometerwert auszulesen und bei einer Änderung gegebenenfalls neue Anweisungen an das Radio-Modul sowie das Display zu senden. Zunächst wird der aktuelle Potentiometerwert ausgelesen. Dieser wird mit dem letzten gespeicherten Potentiometerwert verrechnet. Übersteigt die Differenz einen bestimmten Threshold, welcher abhängig vom aktuellen Modus ist (35 im freien, 80 im automatischen Modus), wird eine Änderung des Potentiometers erkannt und eine Funktion wird aufgerufen. Falls das Radio sich im automatischn Modus befindet, prüft die Funktion, ob durch die Änderung ein Senderwechsel erfolgen soll.
 
    _Zur Veranschaulichung ein Beispiel:
     Sender A ist dem Potentiometer-Wertebereich 0-500 zugeordnet, Sender B dem Bereich von 501-1000. Der letzte Potentiometerwert betrug 380. Der aktuelle Sender ist daher Sender A. Nun wird eine Potentiometer-Änderung von 100 erfasst, der neue Wert beträgt also 480. Dieser liegt weiterhin im Bereich von Sender A, es findet also kein Senderwechsel statt. Nun wird eine weitere Potentiometer-Änderung von +100 erfasst, der neue Wert beträgt also 580. Dieser liegt im Bereich von Sender B, womit ein Senderwechsel eingeleitet wird._
 
-    Der Befehl zur Änderung der Radiofrequenz wird dann an den Radio-Tuner gesendet und dem Display wird der Sendername übergeben, welcher in Zeile 1 angezeigt werden soll. Anschließend wird vom Radio-Modul die Signalstärke ausgelesen und an das Display übermittelt, um diese für 4 Sekunden in Zeile 2 anzeigen zu lassen. Nach den vier Sekunden wird die aktuelle Frequenz an das Display übertragen, welche anschließend in Zeile 2 angezeigt werden soll. Am Ende der zweiten Display-Zeile wird mit "AUTO" der aktuelle Modus abgebildet.  
+    Der Befehl zur Änderung der Radiofrequenz wird dann an den Radio-Tuner gesendet und dem Display wird der Sendername übergeben, welcher in Zeile 1 angezeigt werden soll. Anschließend wird vom Radio-Modul die Signalstärke ausgelesen und an das Display übermittelt, um diese für 4 Sekunden in Zeile 2 anzeigen zu lassen. Nach den vier Sekunden wird die aktuelle Frequenz an das Display übertragen, welche anschließend in Zeile 2 angezeigt werden soll. Am Ende der zweiten Display-Zeile wird mit "AUTO" der aktuelle Modus abgebildet.
+
+    Befindet sich das Radio im freien Modus, wird die Frequenz direkt entsprechend der Potentiometeränderung angepasst und an den Radio-Tuner übermittelt. Anschließend wird diese Frequenz zur Darstellung an das Display übertragen, sowie der Befehl zur Anzeige des Modus-Indikators "FREI" am Ende der ersten Zeile. Zusätzlich wird die Signalstärke vom Radio-Modul ausgelesen und an das Display übergeben, um diese in Zeile 2 anzeigen zu lassen.
 
 
-### Freier Modus
 
-Der freie Modus unterscheidet sich insofern vom automatischen Modus, dass keine Sprünge zwischen Radiosendern erfolgen, sondern der gesamte Frequenzbereich zwischen 87,5 und 108 MHz abgetastet werden kann. Bei Bedienung des Drehreglers können so auch Frequenzen "zwischen" den gängigen Radiosendern eingestellt werden. Des Weiteren unterscheidet sich die Displayanzeige bei Nutzung des freien Modus. Anstelle des Namens des Radiosenders wird nun die aktuelle Frequenz in Zeile 1 des Displays angezeigt sowie am Ende der Zeile mit "FREI" ein Indikator auf den aktuellen Modus. In Zeile 2 wird nun dauerhaft die Signalstärke angezeigt.   
