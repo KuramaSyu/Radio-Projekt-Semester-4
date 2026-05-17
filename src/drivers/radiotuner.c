@@ -1,3 +1,4 @@
+// CURRENTLY NOT USED BECAUSE I2C STARTUP SEQUENCE WAS NOT WORKING
 #include "driver/i2c.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
